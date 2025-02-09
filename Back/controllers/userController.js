@@ -135,7 +135,6 @@ const login = async (req, res) => {
         });
     }
 }
-
 const getMe = (req, res) => {
     res.json(req.user)
 }
@@ -292,35 +291,146 @@ const osszesallat = async (req, res) => {
     res.json(animals);
 };
 
-    
-/*
+const osszesAdat = async (req, res) => {
+    try {
+        // Lekérdezzük az összes állatot és a hozzájuk tartozó felhasználókat
+        const animals = await prisma.animal.findMany({
+            include: {
+                user: true // Ez fogja lekérni a hozzá tartozó felhasználó adatait is
+            }
+        });
 
-{
-"talaltvagyelveszett" : "talalt", 
-"allatfaj" : "kutya", 
-"allatkategoria" : "németdog", 
-"mikorveszettel" : "2025-09-09", 
-"allatneve" : "habarcs", 
-"allatneme" : "kan", 
-"allatszine" : "fekete", 
-"allatmerete" : "kistestű", 
-"egyeb_infok" : "elveszett habarcs nevu kiskutyam", 
-"eltuneshelyszine" : "gyula", 
-"visszakerult_e" : "false"
+        // Lekérdezzük az összes felhasználót is
+        const users = await prisma.user.findMany();
+
+        // Összeállítjuk a választ
+        const response = {
+            animals: animals,
+            users: users
+        };
+
+        res.json(response);
+    } catch (error) {
+        res.status(500).json({ message: "Hiba történt az adatok lekérése során", error });
+    }
+};
+
+const updateUser = async (req, res) => {
+    const userId = parseInt(req.params.id, 10);
+    const { username, email, phonenumber, admin, password } = req.body;
+
+    try {
+        const updateData = {
+            username: username,
+            email: email,
+            phonenumber: phonenumber,
+            admin: admin,
+        };
+
+        if (password) {
+            updateData.password = await argon2.hash(password);
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: updateData,
+        });
+        res.json({ message: "Felhasználó adatai frissítve!", updatedUser });
+    } catch (error) {
+        console.error("Hiba történt a felhasználó frissítése során:", error);
+        res.status(500).json({ error: "Hiba történt a felhasználó frissítése során" });
+    }
+};
+
+const getUserById = async (req, res) => {
+    const userId = parseInt(req.params.id, 10);
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: "Felhasználó nem található!" });
+        }
+
+        res.json(user);
+    } catch (error) {
+        console.error("Hiba történt a felhasználó lekérése során:", error);
+        res.status(500).json({ error: "Hiba történt a felhasználó lekérése során" });
+    }
+};
+
+const getAnimalById = async (req, res) => {
+    const animalId = parseInt(req.params.id, 10); // Az állat ID-ját kiolvassuk a kérésből
+
+    try {
+        // Az állat lekérése az adatbázisból
+        const animal = await prisma.animal.findUnique({
+            where: { id: animalId },
+            include: { user: true }, // Ha szükséges, a hozzá tartozó felhasználó adatait is lekérjük
+        });
+
+        if (!animal) {
+            return res.status(404).json({ error: "Állat nem található!" });
+        }
+
+        res.json(animal); // Visszaadjuk az állat adatait
+    } catch (error) {
+        console.error("Hiba történt az állat lekérése során:", error);
+        res.status(500).json({ error: "Hiba történt az állat lekérése során" });
+    }
+};
+
+const deleteAnimal = async (req, res) => {
+    const animalId = parseInt(req.params.id, 10); // Az állat ID-ját kiolvassuk a kérésből
+
+    try {
+        // Ellenőrizzük, hogy a felhasználó létezik-e
+        const animal = await prisma.animal.findUnique({
+            where: { id: animalId },
+        });
+
+        if (!animal) {
+            return res.status(404).json({ error: "Poszt nem található!" });
+        }
+
+        // Töröljük a felhasználót
+        await prisma.animal.delete({
+            where: { id: animalId },
+        });
+
+        res.json({ message: "Felhasználó sikeresen törölve!" });
+    } catch (error) {
+        console.error("Hiba történt a felhasználó törlése során:", error);
+        res.status(500).json({ error: "Hiba történt a felhasználó törlése során" });
+    }
 }
 
-{
+const deleteUser = async (req, res) => {
+    const userId = parseInt(req.params.id, 10);
 
-"username" : "proba",
-"password" : "proba"
-}
+    try {
+        // Ellenőrizzük, hogy a felhasználó létezik-e
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+        });
 
-*/
+        if (!user) {
+            return res.status(404).json({ error: "Felhasználó nem található!" });
+        }
 
+        // Töröljük a felhasználót
+        await prisma.user.delete({
+            where: { id: userId },
+        });
 
-
-
-
+        res.json({ message: "Felhasználó sikeresen törölve!" });
+    } catch (error) {
+        console.error("Hiba történt a felhasználó törlése során:", error);
+        res.status(500).json({ error: "Hiba történt a felhasználó törlése során" });
+    }
+};
 
 
 module.exports = {
@@ -331,4 +441,11 @@ module.exports = {
     elveszettallat,
     talaltallat,
     osszesallat,
-}
+    osszesAdat,
+    updateUser,
+    getUserById,
+    deleteUser,
+    getAnimalById,
+    deleteAnimal
+ 
+};

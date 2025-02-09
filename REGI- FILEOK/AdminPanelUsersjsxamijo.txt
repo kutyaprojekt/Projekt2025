@@ -1,0 +1,82 @@
+import React, { useEffect, useState, useContext } from 'react';
+import UserContext from '../context/UserContext';
+
+const AdminPanelUsers = () => {
+    const [adatok, setAdatok] = useState({ animals: [], users: [] });
+    const [searchTerm, setSearchTerm] = useState('');
+    const token = localStorage.getItem("usertoken");
+    const { user } = useContext(UserContext);
+
+    const loadAdatok = async () => {
+        try {
+            const response = await fetch("http://localhost:8000/felhasznalok/adminusers", {
+                method: 'GET',
+                headers: {
+                    "Content-type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            setAdatok(data);
+        } catch (error) {
+            console.error("Hiba történt az adatok lekérése során:", error);
+        }
+    };
+
+    useEffect(() => {
+        loadAdatok();
+    }, []);
+
+    // Szűrés logika
+    const filteredUsers = adatok.users.filter(user =>
+        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.phonenumber.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+
+
+    return (
+        <div className="flex flex-col gap-5 p-5">
+            <h1 className="text-3xl font-bold">Üdvözöljük <span className="text-red-600">{user.username}</span>!</h1>
+            <h1 className="text-3xl font-bold justify-center text-center mt-10">Összes felhasználó és állat</h1>
+
+            {/* Keresősáv */}
+            <input
+                type="text"
+                placeholder="Keresés felhasználók vagy állatok között..."
+                className="input input-bordered w-full max-w-xs mb-5"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+            />
+
+            {/* Táblázat felhasználóknak */}
+            <div className="overflow-x-auto">
+                <table className="table w-full">
+                    <thead>
+                        <tr>
+                            <th>Felhasználónév</th>
+                            <th>E-mail</th>
+                            <th>Telefonszám</th>
+                            <th>Admin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredUsers.map((user) => (
+                            <tr key={user.id}>
+                                <td>{user.username}</td>
+                                <td>{user.email}</td>
+                                <td>{user.phonenumber}</td>
+                                <td>{user.admin === "true" ? "Igen" : "Nem"}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+
+        </div>
+    );
+};
+
+export default AdminPanelUsers;

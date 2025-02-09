@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react"; // useRef importálása
 import UserContext from "../context/UserContext";
 
 const Navbar = () => {
   const { refresh, user } = useContext(UserContext);
   const [token, setToken] = useState("");
+  const closepanel = useRef(null); // Referencia a <details> elemhez
 
   useEffect(() => {
     setToken(localStorage.getItem("usertoken"));
@@ -13,6 +14,13 @@ const Navbar = () => {
   const logout = () => {
     localStorage.removeItem("usertoken");
     setToken(null);
+  };
+
+  // Funkció a kattintás esemény kezelésére
+  const handleLinkClick = () => {
+    if (closepanel.current) {
+      closepanel.current.removeAttribute('open'); // Bezárja a <details> elemet
+    }
   };
 
   const isLoggedIn = !!token; // true, ha van token, különben false
@@ -29,10 +37,29 @@ const Navbar = () => {
         <div className="navbar-center hidden lg:flex">
           <ul className="menu menu-horizontal px-1">
             <li><Link to={"/elveszettallat"}>Elveszett A Kisállatom</Link></li>
-            <li><Link to={"/talaltallat"}>Kóbor Állatot Találltam</Link></li>
+            <li><Link to={"/talaltallat"}>Kóbor Állatot Találtam</Link></li>
             <li><Link to={"/osszallat"}>Összes állat</Link></li>
+            <li><Link to={"/osszallat"}>Megtalállt Állatok</Link></li>
+            <li><Link to={"/osszallat"}>Posztjaim</Link></li>
+            
             {user && user.admin === "true" && (
-              <li><Link to={"/admin"}>Admin</Link></li>
+               <li>
+               <details ref={closepanel}> {/* Referencia hozzáadva */}
+                 <summary>Admin Panel</summary>
+                 <ul className="p-2">
+                   <li>
+                     <Link to={"/adminposts"} onClick={handleLinkClick}>
+                       <a>Bejegyzések</a>
+                     </Link>
+                   </li> 
+                   <li>
+                     <Link to={"/adminusers"} onClick={handleLinkClick}>
+                       <a>Felhasználók</a>
+                     </Link>
+                   </li>
+                 </ul>
+               </details>
+             </li>
             )}
             
           </ul>
@@ -54,12 +81,8 @@ const Navbar = () => {
             {isLoggedIn ? (
               <>
                 <li><Link to={"/felhasznalok"}>Felhasználók</Link></li>
-                {user && user.admin === "true" && (
-              <li><Link to={"/admin"}>Admin</Link></li>
-            )}
+                <li><Link to={"/profilom"}>Profilom</Link></li>
                 <li onClick={logout}> <Link to={"/login"}>Kijelentkezés</Link><a></a></li>
-
-
               </>
             ) : (
               <>

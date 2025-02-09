@@ -2,9 +2,14 @@ import Login from "./components/Login";
 import Navbar from "./components/Navbar";
 import Register from "./components/Register";
 import UserList from "./components/UserList";
-import SajatAllat from "./components/SajatAllat";
-import TalaltAllat from "./components/TalaltAllat";
-import OsszAllat from "./components/OsszAllat";
+
+import MyProfile from "./components/MyProfile";
+import RegisterThePetIFound from "./components/RegisterThePetIFound";
+import RegisterMyLostPet from "./components/RegisterMyLostPet";
+import AnimalListed from "./components/AnimalListed";
+import AdminPanelPosts from "./components/AdminPanelPosts";
+import AdminPanelUsers from "./components/AdminPanelUsers";
+
 import { UserProvider } from "./context/UserContext";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
@@ -22,9 +27,12 @@ function App() {
             <Route path={"/login"} element={<Login />} />
             <Route path={"/regisztracio"} element={<Register />} />
             <Route path={"/felhasznalok"} element={<UserList />} />
-            <Route path={"/elveszettallat"} element={<SajatAllat />} />
-            <Route path={"/talaltallat"} element={<TalaltAllat />} />  
-            <Route path={"/osszallat"} element={<OsszAllat />} />      
+            <Route path={"/elveszettallat"} element={<RegisterMyLostPet />} />
+            <Route path={"/talaltallat"} element={<RegisterThePetIFound />} />  
+            <Route path={"/osszallat"} element={<AnimalListed />} />
+            <Route path={"/profilom"} element={<MyProfile />} />    
+            <Route path={"/adminusers"} element={<AdminPanelUsers />} />  
+            <Route path={"/adminposts"} element={<AdminPanelPosts />} />          
           </Routes>
         </Router>
         <ToastContainer />

@@ -1,0 +1,801 @@
+BACKEND
+userController.js:
+const jwt = require('jsonwebtoken')
+const argon2 = require('argon2');
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient()
+const bodyParser = require('body-parser');
+
+
+const generateToken = (id) => {
+    return jwt.sign({id}, "szupertitkostitok", {expiresIn: "1d"});
+}
+
+const register = async (req, res) => {
+    const { username, email, password, password2, phonenumber } = req.body;
+
+    //adat validáció
+    if (!username || !email || !password || !password2 || !phonenumber) {
+        console.log("Kotelezo minden")
+        return res.json({ error: "Minden mező kitöltése kötelező!" });
+        
+    }
+    if (password != password2) {
+        return res.json({ error: "A két jelszó nem egyezik!" });
+    }
+
+
+
+    /////////////////////         USERNAME VAN-E             ////////////////////////////////
+    const vusername = await prisma.user.findFirst({
+        where: {
+            username: username,
+        }
+    });
+
+    if (vusername) {
+        return res.json({ error: "Felhasználónév már használatban!" });
+    }
+    ////////////////////////////////////////////////////////////////////////////////////    
+
+    /////////////////////         EMAIL VAN-E             ////////////////////////////////
+    const vemail = await prisma.user.findFirst({
+        where: {
+            email: email,
+        }
+    });
+
+    if (vemail) {
+        return res.json({ error: "Email-cím már használatban!" });
+    }
+    ////////////////////////////////////////////////////////////////////////////////////
+
+    /////////////////////         TELEFONSZAM VAN-E             ////////////////////////////////
+    const telvane = await prisma.user.findFirst({
+        where: {
+            phonenumber: phonenumber,
+        }
+    });
+
+    if (telvane) {
+        return res.json({ error: "Telefonszám már használatban!" });
+    }
+    ////////////////////////////////////////////////////////////////////////////////////    
+
+
+    //////// JELSZO TITKOSITAS ///////////////
+
+    const hash = await argon2.hash(password);
+
+    //////////////////////////////////////////
+
+    const newuser = await prisma.user.create({
+        data: {
+            username: username,
+            email: email,
+            password: hash,
+            phonenumber: phonenumber
+        }
+    });
+
+    res.json({
+        message: "Sikeres regisztráció!",
+        newuser
+    });
+    
+}
+
+const login = async (req, res) => {
+    const {password, username} = req.body
+    // procedurális email validálás
+    if (!username || !password) {
+        return res.json({ error: "Felhasználónév / Email és jelszó megadása kötelező!" });
+    }
+    console.log("username, password");
+    let user;
+  
+    if (username.includes('@')) {
+        // Ha az 'username' email formátumú, akkor email cím alapján keresünk
+        user = await prisma.user.findFirst({
+            where: {
+                email: username
+            }
+        });
+    } else {
+        // Ha nem email, akkor felhasználónév alapján keresünk
+        user = await prisma.user.findFirst({
+            where: {
+                username: username
+            }
+        });
+    }
+
+
+
+    //if(!user) return res.json({message: "Nem létező fiók!"});
+
+    if (!user) {
+        return res.json({ error: "Hibás felhasználónév / email cím vagy jelszó!" });
+    }
+    
+
+
+    //passMatch ? res.json({message: "Sikeres bejelentkezés!"}): res.json({message: "Helytelen jelszó!"})
+    const passMatch = await argon2.verify(user.password, password);
+
+    if(passMatch){
+        // token --> hitelesítő eszköz --> kulcs
+        const token = generateToken(user.id)
+        return res.json({
+            message: "Sikeres bejelentkezés!",
+            username: user.username,
+            token
+        })
+    } else {
+        return res.json({
+            message: "Helytelen jelszó!"
+        });
+    }
+}
+
+const getMe = (req, res) => {
+    res.json(req.user)
+}
+
+const elveszettallat = async (req, res) => {
+    const userId = req.user.id;
+    const {
+      allatfaj,
+      allatkategoria,
+      mikorveszettel,
+      allatneve,
+      allatneme,
+      allatszine,
+      allatmerete,
+      egyeb_infok,
+      eltuneshelyszine,
+      talalt_elveszett,
+    } = req.body;
+  
+    // Fájl elérési útja
+    const filePath = req.file ? req.file.path : null;
+  
+    // Validáció
+    if (
+      !allatfaj ||
+      !allatkategoria ||
+      !mikorveszettel ||
+      !allatneve ||
+      !allatneme ||
+      !allatszine ||
+      !allatmerete ||
+      !egyeb_infok ||
+      !eltuneshelyszine
+    ) {
+      return res.json({ error: "Minden mező kitöltése kötelező!" });
+    }
+  
+    try {
+      // Új állat létrehozása az adatbázisban
+      const newEAnimal = await prisma.animal.create({
+        data: {
+          allatfaj: allatfaj,
+          kategoria: allatkategoria,
+          datum: mikorveszettel,
+          nev: allatneve,
+          neme: allatneme,
+          szin: allatszine,
+          meret: allatmerete,
+          egyeb_info: egyeb_infok,
+          helyszin: eltuneshelyszine,
+          visszakerult_e: "false",
+          userId: userId,
+          talalt_elveszett: talalt_elveszett || "sajatelveszett", // Alapértelmezett érték
+          filePath: filePath, // Kép elérési útjának mentése
+        },
+      });
+  
+      res.json({
+        message: "Sikeres adatfelvitel!",
+        newEAnimal,
+      });
+    } catch (error) {
+      console.error("Hiba történt az adatfelvitel során:", error);
+      res.status(500).json({ error: "Hiba történt az adatfelvitel során." });
+    }
+};
+
+const talaltallat = async (req, res) => {
+    const userId = req.user.id;
+    const {
+      allatfaj,
+      allatkategoria,
+      mikorveszettel,
+      allatneve,
+      allatneme,
+      allatszine,
+      allatmerete,
+      egyeb_infok,
+      eltuneshelyszine,
+      talalt_elveszett,
+    } = req.body;
+  
+    // Fájl elérési útja
+    const filePath = req.file ? req.file.path : null;
+  
+    // Validáció
+    if (
+      !allatfaj ||
+      !allatkategoria ||
+      !mikorveszettel ||
+      !allatneve ||
+      !allatneme ||
+      !allatszine ||
+      !allatmerete ||
+      !egyeb_infok ||
+      !eltuneshelyszine
+    ) {
+      return res.json({ error: "Minden mező kitöltése kötelező!" });
+    }
+  
+    try {
+      // Új állat létrehozása az adatbázisban
+      const newEAnimal = await prisma.animal.create({
+        data: {
+          allatfaj: allatfaj,
+          kategoria: allatkategoria,
+          datum: mikorveszettel,
+          nev: allatneve,
+          neme: allatneme,
+          szin: allatszine,
+          meret: allatmerete,
+          egyeb_info: egyeb_infok,
+          helyszin: eltuneshelyszine,
+          visszakerult_e: "false",
+          userId: userId,
+          talalt_elveszett: talalt_elveszett || "talaltelveszett", // Alapértelmezett érték
+          filePath: filePath, // Kép elérési útjának mentése
+        },
+      });
+  
+      res.json({
+        message: "Sikeres adatfelvitel!",
+        newEAnimal,
+      });
+    } catch (error) {
+      console.error("Hiba történt az adatfelvitel során:", error);
+      res.status(500).json({ error: "Hiba történt az adatfelvitel során." });
+    }
+};
+
+const getAllUser = async (req, res) => {
+
+    const users = await prisma.user.findMany({
+        where : {
+            NOT: {
+                id: req.user.id
+            }
+        }
+    });
+    res.json(users)
+}
+
+const osszesallat = async (req, res) => {
+    const animals = await prisma.animal.findMany({
+        where: {
+            NOT: {
+                id: 0
+            }
+        },
+        include: {
+            user: true // Ez fogja lekérni a hozzá tartozó felhasználó adatait is
+        }
+    });
+    res.json(animals);
+};
+
+const osszesAdat = async (req, res) => {
+    try {
+        // Lekérdezzük az összes állatot és a hozzájuk tartozó felhasználókat
+        const animals = await prisma.animal.findMany({
+            include: {
+                user: true // Ez fogja lekérni a hozzá tartozó felhasználó adatait is
+            }
+        });
+
+        // Lekérdezzük az összes felhasználót is
+        const users = await prisma.user.findMany();
+
+        // Összeállítjuk a választ
+        const response = {
+            animals: animals,
+            users: users
+        };
+
+        res.json(response);
+    } catch (error) {
+        res.status(500).json({ message: "Hiba történt az adatok lekérése során", error });
+    }
+};
+/*
+
+{
+"talaltvagyelveszett" : "talalt", 
+"allatfaj" : "kutya", 
+"allatkategoria" : "németdog", 
+"mikorveszettel" : "2025-09-09", 
+"allatneve" : "habarcs", 
+"allatneme" : "kan", 
+"allatszine" : "fekete", 
+"allatmerete" : "kistestű", 
+"egyeb_infok" : "elveszett habarcs nevu kiskutyam", 
+"eltuneshelyszine" : "gyula", 
+"visszakerult_e" : "false"
+}
+
+{
+
+"username" : "proba",
+"password" : "proba"
+}
+
+*/
+
+
+
+
+
+
+
+module.exports = {
+    register,
+    login,
+    getAllUser,
+    getMe,
+    elveszettallat,
+    talaltallat,
+    osszesallat,
+    osszesAdat
+}
+
+authMiddleware.js:
+const { PrismaClient } = require('@prisma/client');
+const jwt = require('jsonwebtoken');
+const prisma = new PrismaClient();
+
+const protect = async (req, res, next) => {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
+        try {
+            token = req.headers.authorization.split(' ')[1]
+            const idFromToken = jwt.verify(token, "szupertitkostitok").id
+            req.user = await prisma.user.findFirst({
+                where: {
+                    id: idFromToken
+                }
+            });
+            next();   
+        } catch (error) {
+            res.status(401).json({error: "Jelentkezzen be!"});
+        }
+    }
+
+    if(!token){
+        res.status(401).json({message: "Jelentkezzen be!"});
+    }
+}
+
+module.exports = {
+    protect
+}
+
+schema.prisma:
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  username    String
+  password    String
+  phonenumber String
+  admin       String  @default("false")
+  animals     Animal[] @relation("UserAnimals")
+
+  @@map("users")
+}
+
+model Animal {
+  id               Int      @id @default(autoincrement())
+  talalt_elveszett String
+  allatfaj         String
+  kategoria        String
+  datum            String
+  nev              String
+  neme             String
+  szin             String
+  meret            String
+  egyeb_info       String
+  helyszin         String
+  filePath          String
+  visszakerult_e   String
+
+
+  userId           Int
+  user             User     @relation("UserAnimals", fields: [userId], references: [id])
+
+}
+
+userRoutes.js:
+const express = require('express');
+const router = express.Router();
+const {protect} = require('../mwares/authMiddleware');
+const multer = require("multer");
+const {
+    register,
+    login,
+    getAllUser,
+    getMe,
+    elveszettallat,
+    talaltallat,
+    osszesallat,
+    osszesAdat,
+} = require('../controllers/userController');
+
+
+// Multer konfiguráció
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, "./images"); // A feltöltött fájlok mentési helye
+    },
+    filename: function (req, file, cb) {
+      cb(null, `${Date.now()}_${file.originalname}`); // Fájlnév konfiguráció
+    },
+  });
+  
+  const upload = multer({ storage });
+  
+
+
+router.post("/regisztracio", register);
+router.post("/login", login);
+router.post("/elveszettallat", protect, upload.single("file"), elveszettallat);
+router.post("/talaltallat", protect, upload.single("file"), talaltallat);
+
+
+router.get("/alluser", protect ,getAllUser);
+router.get("/me", protect, getMe)
+router.get("/osszallat", osszesallat)
+router.get("/adminusers", protect, osszesAdat )
+
+module.exports = router
+
+index.js:
+const express = require("express");
+const cors = require("cors");
+const { expressCspHeader, INLINE, NONE, SELF } = require('express-csp-header');
+const path = require('path');
+const app = express();
+// other app.use() options ...
+app.use(expressCspHeader({ 
+    policies: { 
+        'default-src': [SELF], 
+        'img-src': ['data:', 'images.com', 'localhost'],  // Engedélyezd a képek betöltését localhostról
+        'favicon': ['localhost'],  // Engedélyezd a favicon.ico betöltését
+    } 
+}));
+  
+
+app.use(cors());
+app.use(express.json())
+
+app.use("/felhasznalok", require('./routes/userRoutes'));
+//http://localhost:8000/images/1737928685866_kutyageci.jpg
+app.use("/images", express.static(path.join(__dirname, "images"))); // middleware
+
+app.listen(8000, () => {
+    console.log("Fut a szerver")
+});
+
+app.get("/", (req, res) => {
+    res.json({message: "Felhasznalok projekt"});
+});
+
+// 1. ellenőrizzük az adatokat
+// 2. csekkolom, hogy van-e már ilyen felhasználó
+// 3. titkosítom a jelszavakat, (hash)
+// 4. regisztál a felhasználó
+
+// login
+// 1. validálás
+// 2. megnézzük, hogy létezik-e a bejelentkezni kívánó felhasználó az adatbázisban
+// 3. jelszó helyessége
+// 4. authentikációs eszköz --> hitelesítő eszköz visszaküldése --> jwt token
+
+
+
+FRONTEND:
+main.jsx:
+import { StrictMode } from 'react'
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.jsx'
+import { ThemeProvider } from "@material-tailwind/react";
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  </React.StrictMode>
+);
+
+app.jsx:
+import Login from "./components/Login";
+import Navbar from "./components/Navbar";
+import Register from "./components/Register";
+import UserList from "./components/UserList";
+
+import MyProfile from "./components/MyProfile";
+import RegisterThePetIFound from "./components/RegisterThePetIFound";
+import RegisterMyLostPet from "./components/RegisterMyLostPet";
+import AnimalListed from "./components/AnimalListed";
+import AdminPanelPosts from "./components/AdminPanelPosts";
+import AdminPanelUsers from "./components/AdminPanelUsers";
+
+import { UserProvider } from "./context/UserContext";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { ToastContainer, toast } from 'react-toastify';
+// http://localhost:8000/felhasznalok/regisztracio
+// http://localhost:8000/felhasznalok/login
+// http://localhost:8000/felhasznalok/alluser
+
+function App() {
+  return (
+    <>
+      <UserProvider>
+        <Router>
+          <Navbar />
+          <Routes>
+            <Route path={"/login"} element={<Login />} />
+            <Route path={"/regisztracio"} element={<Register />} />
+            <Route path={"/felhasznalok"} element={<UserList />} />
+            <Route path={"/elveszettallat"} element={<RegisterMyLostPet />} />
+            <Route path={"/talaltallat"} element={<RegisterThePetIFound />} />  
+            <Route path={"/osszallat"} element={<AnimalListed />} />
+            <Route path={"/profilom"} element={<MyProfile />} />    
+            <Route path={"/adminusers"} element={<AdminPanelUsers />} />  
+            <Route path={"/adminposts"} element={<AdminPanelPosts />} />          
+          </Routes>
+        </Router>
+        <ToastContainer />
+      </UserProvider>
+    </>
+  );
+}
+
+export default App;
+
+usercontext.jsx:
+import { useState,createContext, useEffect } from "react";
+
+const UserContext=createContext();
+
+export const UserProvider=({children})=>{
+
+    const [refresh, SetRefresh] = useState(false)
+    const [user, setUser] = useState({})
+    const token = localStorage.getItem('usertoken')
+
+    //lekérem a felhasználót
+
+    const getCurrentUser = async (token) => {
+        const response = await fetch('http://localhost:8000/felhasznalok/me', {
+            method: 'GET',
+            headers: {
+                "Content-type": "application/json",
+                "Authorization": `Bearer ${token}`
+
+            }
+        })
+        const data = await response.json()
+        setUser(data)
+    }
+
+    // mindig lefut amikor betölt a komponens
+    // oldal reload esetén is le fog futni
+    useEffect (() => {
+        if (token) {
+            getCurrentUser(token)
+        }
+    }, [])
+
+
+
+    return<UserContext.Provider value={{
+        refresh,
+        SetRefresh,
+        user,
+        getCurrentUser
+    }}>{children}</UserContext.Provider>
+}
+
+export default UserContext;
+
+AdminPanelUsers.jsx:
+import React, { useEffect, useState, useContext } from 'react';
+import AdminPanelUsersTemplate from './AdminPanelUsersTemplate';
+import UserContext from '../context/UserContext'; // Ha van UserContext-ed
+
+const AdminPanelUsers = () => {
+    const [adatok, setAdatok] = useState({ animals: [], users: [] });
+    const token = localStorage.getItem("usertoken"); // Token lekérése
+    const { user } = useContext(UserContext); // Bejelentkezett felhasználó adatainak lekérése
+
+    const loadAdatok = async () => {
+        try {
+            const response = await fetch("http://localhost:8000/felhasznalok/adminusers", {
+                method: 'GET',
+                headers: {
+                    "Content-type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            setAdatok(data); // Adatok beállítása
+        } catch (error) {
+            console.error("Hiba történt az adatok lekérése során:", error);
+        }
+    };
+
+    useEffect(() => {
+        loadAdatok();
+    }, []);
+
+    return (
+        <div className="flex flex-col gap-5 pl-5">
+            <h1 className="text-3xl font-bold">Üdvözöljük <span className="text-red-600">{user.username}</span>!</h1>
+            <h1 className="text-3xl font-bold justify-center text-center mt-10">Összes felhasználó</h1>
+            <div className="flex flex-wrap gap-5 justify-center items-center">
+                {adatok.users.map((user) => (
+                    <AdminPanelUsersTemplate key={user.id} user={user} />
+                ))}
+                
+
+            </div>
+        </div>
+    );
+};
+
+export default AdminPanelUsers;
+
+AdminPanelUsersTemplate.jsx:
+import React, { useState } from 'react';
+
+const AdminPanelUsersTemplate = ({ user }) => {
+    const modalId = `my_modal_${user.id}`; // Egyedi modal azonosító
+    const [email, setEmail] = useState(user.email); // Állapot az e-mail cím tárolására
+    const [username, setUsername] = useState(user.username); // Állapot a felhasználónév tárolására
+    const [password, setPassword] = useState(''); // Állapot a jelszó tárolására
+    const [showPasswordField, setShowPasswordField] = useState(false); // Állapot a jelszó mező megjelenítéséhez
+
+    const handleEmailChange = (e) => {
+        setEmail(e.target.value); // Frissíti az állapotot, amikor az e-mail cím változik
+    };
+
+    const handleUsernameChange = (e) => {
+        setUsername(e.target.value); // Frissíti az állapotot, amikor a felhasználónév változik
+    };
+
+    const handlePasswordChange = (e) => {
+        setPassword(e.target.value); // Frissíti az állapotot, amikor a jelszó változik
+    };
+
+    const handleSubmit = async () => {
+        try {
+            // Küldjük a módosított adatokat a szerverre
+            const response = await fetch(`http://localhost:8000/felhasznalok/${user.id}/update`, {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json",
+                },
+                body: JSON.stringify({ email, username, password }), // Küldjük az új adatokat
+            });
+
+            if (response.ok) {
+                console.log("Adatok frissítve!");
+                document.getElementById(modalId).close(); // Modal bezárása
+            } else {
+                console.error("Hiba történt a mentés során");
+            }
+        } catch (error) {
+            console.error("Hiba történt a mentés során:", error);
+        }
+    };
+
+    return (
+        <div className="card bg-base-100 w-96 shadow-xl">
+            <div className="card-body">
+                <h2 className="card-title">{user.username}</h2>
+                <p>{user.email}</p>
+
+                {/* Modal gomb és tartalom */}
+                <button className="btn btn-info" onClick={() => document.getElementById(modalId).showModal()}>
+                    Info
+                </button>
+                <dialog id={modalId} className="modal">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">{user.username} adatai</h3>
+
+                        {/* E-mail cím mező */}
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text">E-mail cím</span>
+                            </label>
+                            <input
+                                type="text"
+                                className="input input-bordered"
+                                value={email}
+                                onChange={handleEmailChange}
+                            />
+                        </div>
+
+                        {/* Felhasználónév mező */}
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text">Felhasználónév</span>
+                            </label>
+                            <input
+                                type="text"
+                                className="input input-bordered"
+                                value={username}
+                                onChange={handleUsernameChange}
+                            />
+                        </div>
+
+                        {/* Jelszó mező */}
+                        {showPasswordField && (
+                            <div className="form-control">
+                                <label className="label">
+                                    <span className="label-text">Új jelszó</span>
+                                </label>
+                                <input
+                                    type="password"
+                                    className="input input-bordered"
+                                    value={password}
+                                    onChange={handlePasswordChange}
+                                />
+                            </div>
+                        )}
+
+                        {/* Jelszó módosítása gomb */}
+                        <button
+                            className="btn btn-sm btn-outline mt-3"
+                            onClick={() => setShowPasswordField(!showPasswordField)}
+                        >
+                            {showPasswordField ? "Jelszó mező elrejtése" : "Jelszó módosítása"}
+                        </button>
+
+                        {/* Modal gombok */}
+                        <div className="modal-action">
+                            <form method="dialog">
+                                <button className="btn">Close</button>
+                            </form>
+                            <button className="btn" onClick={handleSubmit}>Submit</button>
+                        </div>
+                    </div>
+                </dialog>
+            </div>
+        </div>
+    );
+};
+
+export default AdminPanelUsersTemplate;

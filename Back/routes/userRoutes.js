@@ -9,7 +9,13 @@ const {
     getMe,
     elveszettallat,
     talaltallat,
-    osszesallat
+    osszesallat,
+    osszesAdat,
+    updateUser,  // Felhasználó frissítés
+    getUserById,  // Felhasználók lekérdezésének id alapján
+    deleteUser,  // Felhasználó törlésének id alapján
+    getAnimalById,  // ��llatok lekérdezésének id alapján
+    deleteAnimal, //
 } = require('../controllers/userController');
 
 
@@ -36,5 +42,14 @@ router.post("/talaltallat", protect, upload.single("file"), talaltallat);
 router.get("/alluser", protect ,getAllUser);
 router.get("/me", protect, getMe)
 router.get("/osszallat", osszesallat)
+router.get("/adminusers", protect, osszesAdat )
+router.get("/adminposts", osszesAdat )
+router.get("/felhasznalok/:id", protect, getUserById);
+router.get("/allatok/:id", getAnimalById);
+
+router.patch("/felhasznalok/:id", updateUser);
+
+router.delete("/felhasznalok/:id", deleteUser);
+router.delete("/allatok/:id", deleteAnimal);
 
 module.exports = router
