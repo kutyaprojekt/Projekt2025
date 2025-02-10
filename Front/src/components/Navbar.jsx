@@ -39,8 +39,8 @@ const Navbar = () => {
             <li><Link to={"/elveszettallat"}>Elveszett A Kisállatom</Link></li>
             <li><Link to={"/talaltallat"}>Kóbor Állatot Találtam</Link></li>
             <li><Link to={"/osszallat"}>Összes állat</Link></li>
-            <li><Link to={"/osszallat"}>Megtalállt Állatok</Link></li>
-            <li><Link to={"/osszallat"}>Posztjaim</Link></li>
+            <li><Link to={"/megtalaltallatok"}>Megtalállt Állatok</Link></li>
+            <li><Link to={"/posztjaim"}>Posztjaim</Link></li>
             
             {user && user.admin === "true" && (
                <li>

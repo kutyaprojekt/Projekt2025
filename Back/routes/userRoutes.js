@@ -16,6 +16,8 @@ const {
     deleteUser,  // Felhasználó törlésének id alapján
     getAnimalById,  // ��llatok lekérdezésének id alapján
     deleteAnimal, //
+    megtalalltallatok,
+    userposts, //
 } = require('../controllers/userController');
 
 
@@ -46,6 +48,8 @@ router.get("/adminusers", protect, osszesAdat )
 router.get("/adminposts", osszesAdat )
 router.get("/felhasznalok/:id", protect, getUserById);
 router.get("/allatok/:id", getAnimalById);
+router.get("/megtalaltallatok", megtalalltallatok);
+router.get("/posztjaim", protect, userposts );
 
 router.patch("/felhasznalok/:id", updateUser);
 

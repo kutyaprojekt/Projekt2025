@@ -1,3 +1,8 @@
+import AdminPanelPosts from "./components/Admin/AdminPanelPosts";
+import AdminPanelUsers from "./components/Admin/AdminPanelUsers";
+import UserPosts from "./components/LoggedUser/UserPosts";
+
+
 import Login from "./components/Login";
 import Navbar from "./components/Navbar";
 import Register from "./components/Register";
@@ -7,8 +12,9 @@ import MyProfile from "./components/MyProfile";
 import RegisterThePetIFound from "./components/RegisterThePetIFound";
 import RegisterMyLostPet from "./components/RegisterMyLostPet";
 import AnimalListed from "./components/AnimalListed";
-import AdminPanelPosts from "./components/AdminPanelPosts";
-import AdminPanelUsers from "./components/AdminPanelUsers";
+
+
+import FoundAnimals from "./components/FoundAnimals";
 
 import { UserProvider } from "./context/UserContext";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
@@ -32,7 +38,9 @@ function App() {
             <Route path={"/osszallat"} element={<AnimalListed />} />
             <Route path={"/profilom"} element={<MyProfile />} />    
             <Route path={"/adminusers"} element={<AdminPanelUsers />} />  
-            <Route path={"/adminposts"} element={<AdminPanelPosts />} />          
+            <Route path={"/adminposts"} element={<AdminPanelPosts />} />         
+            <Route path={"/megtalaltallatok"} element={<FoundAnimals />} /> 
+            <Route path={"/posztjaim"} element={<UserPosts />} />               
           </Routes>
         </Router>
         <ToastContainer />

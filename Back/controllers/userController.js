@@ -432,6 +432,36 @@ const deleteUser = async (req, res) => {
     }
 };
 
+const megtalalltallatok = async (req, res) => {
+    const  igaz = "true";
+    const animals = await prisma.animal.findMany({
+        where: {visszakerult_e: igaz},
+        include: {
+            user: true // Ez fogja lekérni a hozzá tartozó felhasználó adatait is
+        }
+    });
+    res.json(animals);
+};
+
+const userposts = async (req, res) => {
+    console.log("Bejelentkezett felhasználó:", req.user); // Ellenőrizd a konzolon
+
+    try {
+        const animals = await prisma.animal.findMany({
+            where: { userId: req.user.id },
+        });
+
+        if (!animals || animals.length === 0) {
+            return res.status(404).json({ error: "Nincsenek posztok!" });
+        }
+
+        res.json(animals);
+    } catch (error) {
+        console.error("Hiba történt a posztok lekérése során:", error);
+        res.status(500).json({ error: "Hiba történt a posztok lekérése során" });
+    }
+};
+
 
 module.exports = {
     register,
@@ -446,6 +476,8 @@ module.exports = {
     getUserById,
     deleteUser,
     getAnimalById,
-    deleteAnimal
+    deleteAnimal,
+    megtalalltallatok,
+    userposts,
  
 };
