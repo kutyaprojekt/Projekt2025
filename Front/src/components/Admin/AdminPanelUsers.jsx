@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import UserContext from '../../context/UserContext';
-import UserEditModal from '../UserEditModal';
+import UserEditModal from './UserEditModal';
 
 const AdminPanelUsers = () => {
     const [adatok, setAdatok] = useState({ animals: [], users: [] });

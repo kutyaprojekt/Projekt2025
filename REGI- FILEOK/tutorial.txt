@@ -1,4 +1,0 @@
-LostAnimalTemplate.jsx - Animal.jsx --kesz
-AnimalListed.jsx - OsszAllat.jsx - kesz
-RegisterMyLostPet.jsx- SajatAllat.jsx
-RegisterThePetIFound.jsx - TalaltAllat.jsx

@@ -18,6 +18,8 @@ const {
     deleteAnimal, //
     megtalalltallatok,
     userposts, //
+    osszeselveszett,
+    editmyprofile
 } = require('../controllers/userController');
 
 
@@ -43,13 +45,14 @@ router.post("/talaltallat", protect, upload.single("file"), talaltallat);
 
 router.get("/alluser", protect ,getAllUser);
 router.get("/me", protect, getMe)
-router.get("/osszallat", osszesallat)
+router.get("/osszallat", osszeselveszett )
 router.get("/adminusers", protect, osszesAdat )
 router.get("/adminposts", osszesAdat )
 router.get("/felhasznalok/:id", protect, getUserById);
 router.get("/allatok/:id", getAnimalById);
 router.get("/megtalaltallatok", megtalalltallatok);
 router.get("/posztjaim", protect, userposts );
+router.get("/profilom", protect, getMe, editmyprofile);
 
 router.patch("/felhasznalok/:id", updateUser);
 

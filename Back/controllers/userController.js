@@ -12,12 +12,12 @@ const generateToken = (id) => {
 const register = async (req, res) => {
     const { username, email, password, password2, phonenumber } = req.body;
 
-    //adat validáció
-    if (!username || !email || !password || !password2 || !phonenumber) {
-        console.log("Kotelezo minden")
-        return res.json({ error: "Minden mező kitöltése kötelező!" });
-        
-    }
+    //Bekért adatok validálása
+    if (!username) {return res.json({ error: "Felhasználónév megadása kötelező" });       }
+    if(!email ){return res.json({ error: "Email cím megadása kötelező" });       }
+    if(!password || !password2){return res.json({ error: "Mind 2 jelszó megadása kötelező" });       }
+    if(!phonenumber){return res.json({ error: "Telefonszám megadása kötelező" });       }
+    
     if (password != password2) {
         return res.json({ error: "A két jelszó nem egyezik!" });
     }
@@ -131,7 +131,7 @@ const login = async (req, res) => {
         })
     } else {
         return res.json({
-            message: "Helytelen jelszó!"
+            error: "Helytelen jelszó!"
         });
     }
 }
@@ -205,16 +205,15 @@ const elveszettallat = async (req, res) => {
 const talaltallat = async (req, res) => {
     const userId = req.user.id;
     const {
-      allatfaj,
-      allatkategoria,
-      mikorveszettel,
-      allatneve,
-      allatneme,
-      allatszine,
-      allatmerete,
-      egyeb_infok,
-      eltuneshelyszine,
-      talalt_elveszett,
+      allatfaj = "",
+      allatkategoria = "",
+      mikorveszettel = "",
+      allatneme = "",
+      allatszine = "",
+      allatmerete = "",
+      egyeb_infok = "",
+      eltuneshelyszine = "",
+      talalt_elveszett = "",
     } = req.body;
   
     // Fájl elérési útja
@@ -223,13 +222,9 @@ const talaltallat = async (req, res) => {
     // Validáció
     if (
       !allatfaj ||
-      !allatkategoria ||
       !mikorveszettel ||
-      !allatneve ||
-      !allatneme ||
       !allatszine ||
       !allatmerete ||
-      !egyeb_infok ||
       !eltuneshelyszine
     ) {
       return res.json({ error: "Minden mező kitöltése kötelező!" });
@@ -242,7 +237,6 @@ const talaltallat = async (req, res) => {
           allatfaj: allatfaj,
           kategoria: allatkategoria,
           datum: mikorveszettel,
-          nev: allatneve,
           neme: allatneme,
           szin: allatszine,
           meret: allatmerete,
@@ -252,6 +246,7 @@ const talaltallat = async (req, res) => {
           userId: userId,
           talalt_elveszett: talalt_elveszett || "talaltelveszett", // Alapértelmezett érték
           filePath: filePath, // Kép elérési útjának mentése
+          nev: "",
         },
       });
   
@@ -283,6 +278,22 @@ const osszesallat = async (req, res) => {
             NOT: {
                 id: 0
             }
+        },
+        include: {
+            user: true // Ez fogja lekérni a hozzá tartozó felhasználó adatait is
+        }
+    });
+    res.json(animals);
+};
+
+const osszeselveszett = async (req, res) => {
+    const animals = await prisma.animal.findMany({
+        where: {
+            visszakerult_e: "false",
+            NOT: {
+                id: 0
+            },
+
         },
         include: {
             user: true // Ez fogja lekérni a hozzá tartozó felhasználó adatait is
@@ -462,6 +473,54 @@ const userposts = async (req, res) => {
     }
 };
 
+const editmyprofile = async (req, res) => {
+    const userId = req.user.id; // A bejelentkezett felhasználó ID-ja
+    const { username, email, oldPassword, newPassword } = req.body;
+
+    try {
+        // Ellenőrizzük, hogy a felhasználó létezik-e
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: "Felhasználó nem található!" });
+        }
+
+        // Jelszó módosítás esetén ellenőrizzük a régi jelszót
+        if (oldPassword && newPassword) {
+            const isPasswordValid = await argon2.verify(user.password, oldPassword);
+            if (!isPasswordValid) {
+                return res.status(400).json({ error: "Hibás régi jelszó!" });
+            }
+
+            // Új jelszó titkosítása
+            const hashedPassword = await argon2.hash(newPassword);
+            await prisma.user.update({
+                where: { id: userId },
+                data: { password: hashedPassword },
+            });
+        }
+
+        // Felhasználónév és email frissítése
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                username: username || user.username,
+                email: email || user.email,
+            },
+        });
+
+        res.json({
+            message: "Profil sikeresen frissítve!",
+            user: updatedUser,
+        });
+    } catch (error) {
+        console.error("Hiba történt a profil frissítése során:", error);
+        res.status(500).json({ error: "Hiba történt a profil frissítése során" });
+    }
+};
+
 
 module.exports = {
     register,
@@ -479,5 +538,7 @@ module.exports = {
     deleteAnimal,
     megtalalltallatok,
     userposts,
+    osszeselveszett,
+    editmyprofile
  
 };

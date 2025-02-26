@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -13,7 +13,7 @@ model User {
   username    String
   password    String
   phonenumber String
-  admin       String  @default("false")
+  admin       String  @default("true")
   animals     Animal[] @relation("UserAnimals")
 
   @@map("users")
