@@ -208,6 +208,7 @@ const elveszettallat = async (req, res) => {
 const talaltallat = async (req, res) => {
     const userId = req.user.id;
     const {
+        nev = "Ismeretlen", // Alapértelmezett érték "Ismeretlen"
         allatfaj = "",
         allatkategoria = "",
         mikorveszettel = "",
@@ -237,6 +238,7 @@ const talaltallat = async (req, res) => {
         // Új állat létrehozása az adatbázisban
         const newEAnimal = await prisma.animal.create({
             data: {
+                nev: nev, // Itt már csak egyszer adjuk hozzá, az alapértelmezett "Ismeretlen" értékkel
                 allatfaj: allatfaj,
                 kategoria: allatkategoria,
                 datum: mikorveszettel,
@@ -247,9 +249,9 @@ const talaltallat = async (req, res) => {
                 helyszin: eltuneshelyszine,
                 visszakerult_e: "false",
                 userId: userId,
-                talalt_elveszett: talalt_elveszett || "talaltelveszett", // Alapértelmezett érték
-                filePath: filePath, // Kép elérési útjának mentése
-                nev: "",
+                talalt_elveszett: talalt_elveszett || "talaltelveszett", 
+                filePath: filePath,
+                // A "nev: ''," sort TÁVOLÍTSD EL innen!
             },
         });
 

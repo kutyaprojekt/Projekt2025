@@ -48,10 +48,11 @@ const RegisterMyLostPet = () => {
   };
 
   const handleDateChange = (date) => {
-    setSelectedDate(date);
-    setFormState((prevState) => ({
-      ...prevState,
-      mikorveszettel: date.toISOString().split("T")[0],
+    const finalDate = date || new Date(); 
+    setSelectedDate(finalDate);
+    setFormState(prev => ({
+      ...prev,
+      mikorveszettel: finalDate.toISOString().split("T")[0]
     }));
   };
 
@@ -150,6 +151,7 @@ const RegisterMyLostPet = () => {
                 className={`w-full pl-3 pr-3 py-2 border-2 ${theme === "dark" ? "border-gray-700 bg-gray-700 text-white" : "border-[#1A73E8] bg-white text-[#073F48]"} rounded-lg focus:outline-none focus:ring-2 ${theme === "dark" ? "focus:ring-gray-500" : "focus:ring-[#1A73E8]"} text-base`}
                 placeholderText="Eltűnés Időpontja"
                 dateFormat="yyyy.MM.dd"
+                maxDate={new Date()}
               />
             </div>
           </div>

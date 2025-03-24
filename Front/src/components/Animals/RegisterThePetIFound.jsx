@@ -15,6 +15,7 @@ const RegisterThePetIFound = () => {
   const { theme } = useTheme();
 
   let formObj = {
+    nev: "Ismeretlen",
     talaltvagyelveszett: "talalt",
     allatfaj: "",
     allatkategoria: "",
@@ -27,11 +28,18 @@ const RegisterThePetIFound = () => {
     filePath: "",
   };
 
-  const [formState, setFormState] = useState(formObj);
+  const [formState, setFormState] = useState({
+    ...formObj,
+    mikorveszettel: new Date().toISOString().split("T")[0] // Alapból mai dátum
+  });
   const [file, setFile] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  
   const [preview, setPreview] = useState(null);
+  const formData = new FormData();
 
+  
+  
   useEffect(() => {
     window.scrollTo(0, 0);
     // Téma alkalmazása a body elemre
@@ -46,10 +54,11 @@ const RegisterThePetIFound = () => {
   };
 
   const handleDateChange = (date) => {
-    setSelectedDate(date);
-    setFormState((prevState) => ({
-      ...prevState,
-      mikorveszettel: date.toISOString().split("T")[0],
+    const finalDate = date || new Date(); 
+    setSelectedDate(finalDate);
+    setFormState(prev => ({
+      ...prev,
+      mikorveszettel: finalDate.toISOString().split("T")[0]
     }));
   };
 
@@ -71,7 +80,7 @@ const RegisterThePetIFound = () => {
       return;
     }
 
-    const formData = new FormData();
+    
 
     for (const key in formState) {
       formData.append(key, formState[key]);
@@ -148,6 +157,7 @@ const RegisterThePetIFound = () => {
                 className={`w-full pr-3 pl-3 py-2 border-2 ${theme === "dark" ? "border-gray-700 bg-gray-700 text-white" : "border-[#1A73E8] bg-white text-[#073F48]"} rounded-lg focus:outline-none focus:ring-2 ${theme === "dark" ? "focus:ring-gray-500" : "focus:ring-[#1A73E8]"} text-base`}
                 placeholderText="Találat Időpontja"
                 dateFormat="yyyy.MM.dd"
+                maxDate={new Date()} // Opcionális: csak a mai napig enged dátumot választani
               />
             </div>
           </div>
