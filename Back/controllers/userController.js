@@ -6,18 +6,18 @@ const bodyParser = require('body-parser');
 
 
 const generateToken = (id) => {
-    return jwt.sign({id}, "szupertitkostitok", {expiresIn: "1d"});
+    return jwt.sign({ id }, "szupertitkostitok", { expiresIn: "1d" });
 }
 
 const register = async (req, res) => {
     const { username, email, password, password2, phonenumber } = req.body;
 
     //Bekért adatok validálása
-    if (!username) {return res.json({ error: "Felhasználónév megadása kötelező" });       }
-    if(!email ){return res.json({ error: "Email cím megadása kötelező" });       }
-    if(!password || !password2){return res.json({ error: "Mind 2 jelszó megadása kötelező" });       }
-    if(!phonenumber){return res.json({ error: "Telefonszám megadása kötelező" });       }
-    
+    if (!username) { return res.json({ error: "Felhasználónév megadása kötelező" }); }
+    if (!email) { return res.json({ error: "Email cím megadása kötelező" }); }
+    if (!password || !password2) { return res.json({ error: "Mind 2 jelszó megadása kötelező" }); }
+    if (!phonenumber) { return res.json({ error: "Telefonszám megadása kötelező" }); }
+
     if (password != password2) {
         return res.json({ error: "A két jelszó nem egyezik!" });
     }
@@ -80,18 +80,18 @@ const register = async (req, res) => {
         message: "Sikeres regisztráció!",
         newuser
     });
-    
+
 }
 
 const login = async (req, res) => {
-    const {password, username} = req.body
+    const { password, username } = req.body
     // procedurális email validálás
     if (!username || !password) {
         return res.json({ error: "Felhasználónév / Email és jelszó megadása kötelező!" });
     }
     console.log("username, password");
     let user;
-  
+
     if (username.includes('@')) {
         // Ha az 'username' email formátumú, akkor email cím alapján keresünk
         user = await prisma.user.findFirst({
@@ -115,13 +115,13 @@ const login = async (req, res) => {
     if (!user) {
         return res.json({ error: "Hibás felhasználónév / email cím vagy jelszó!" });
     }
-    
+
 
 
     //passMatch ? res.json({message: "Sikeres bejelentkezés!"}): res.json({message: "Helytelen jelszó!"})
     const passMatch = await argon2.verify(user.password, password);
 
-    if(passMatch){
+    if (passMatch) {
         // token --> hitelesítő eszköz --> kulcs
         const token = generateToken(user.id)
         return res.json({
@@ -140,130 +140,133 @@ const getMe = (req, res) => {
 }
 
 const elveszettallat = async (req, res) => {
-    const userId = req.user.id;
+    // Ellenőrizd, hogy a felhasználó be van-e jelentkezve
+    if (!req.user || !req.user.id) {
+        return res.status(401).json({ error: "Hozzáférés megtagadva: Nincs bejelentkezve felhasználó." });
+    }
+
+    const userId = req.user.id; // Felhasználó ID-ja
     const {
-      allatfaj,
-      allatkategoria,
-      mikorveszettel,
-      allatneve,
-      allatneme,
-      allatszine,
-      allatmerete,
-      egyeb_infok,
-      eltuneshelyszine,
-      talalt_elveszett,
+        allatfaj,
+        allatkategoria,
+        mikorveszettel,
+        allatneve,
+        allatneme,
+        allatszine,
+        allatmerete,
+        egyeb_infok,
+        eltuneshelyszine,
+        talalt_elveszett,
     } = req.body;
-  
+
     // Fájl elérési útja
     const filePath = req.file ? req.file.path : null;
-  
+
     // Validáció
     if (
-      !allatfaj ||
-      !allatkategoria ||
-      !mikorveszettel ||
-      !allatneve ||
-      !allatneme ||
-      !allatszine ||
-      !allatmerete ||
-      !egyeb_infok ||
-      !eltuneshelyszine
+        !allatfaj ||
+        !mikorveszettel ||
+        !allatneve ||
+        !allatneme ||
+        !allatszine ||
+        !allatmerete ||
+        !eltuneshelyszine
     ) {
-      return res.json({ error: "Minden mező kitöltése kötelező!" });
+        return res.json({ error: "Minden kötelező mező kitöltése szükséges!" });
     }
-  
+
     try {
-      // Új állat létrehozása az adatbázisban
-      const newEAnimal = await prisma.animal.create({
-        data: {
-          allatfaj: allatfaj,
-          kategoria: allatkategoria,
-          datum: mikorveszettel,
-          nev: allatneve,
-          neme: allatneme,
-          szin: allatszine,
-          meret: allatmerete,
-          egyeb_info: egyeb_infok,
-          helyszin: eltuneshelyszine,
-          visszakerult_e: "false",
-          userId: userId,
-          talalt_elveszett: talalt_elveszett || "sajatelveszett", // Alapértelmezett érték
-          filePath: filePath, // Kép elérési útjának mentése
-        },
-      });
-  
-      res.json({
-        message: "Sikeres adatfelvitel!",
-        newEAnimal,
-      });
+        // Új állat létrehozása az adatbázisban
+        const newEAnimal = await prisma.animal.create({
+            data: {
+                allatfaj: allatfaj,
+                kategoria: allatkategoria || null, // Opcionális mező
+                datum: mikorveszettel,
+                nev: allatneve,
+                neme: allatneme,
+                szin: allatszine,
+                meret: allatmerete,
+                egyeb_info: egyeb_infok || null, // Opcionális mező
+                helyszin: eltuneshelyszine,
+                visszakerult_e: "false",
+                userId: userId, // Felhasználó ID-ja kötelezően megadva
+                talalt_elveszett: talalt_elveszett || "sajatelveszett",
+                filePath: filePath,
+            },
+        });
+
+        res.json({
+            message: "Sikeres adatfelvitel!",
+            newEAnimal,
+        });
     } catch (error) {
-      console.error("Hiba történt az adatfelvitel során:", error);
-      res.status(500).json({ error: "Hiba történt az adatfelvitel során." });
+        console.error("Hiba történt az adatfelvitel során:", error);
+        res.status(500).json({ error: "Hiba történt az adatfelvitel során." });
     }
 };
 
 const talaltallat = async (req, res) => {
     const userId = req.user.id;
     const {
-      allatfaj = "",
-      allatkategoria = "",
-      mikorveszettel = "",
-      allatneme = "",
-      allatszine = "",
-      allatmerete = "",
-      egyeb_infok = "",
-      eltuneshelyszine = "",
-      talalt_elveszett = "",
+        allatfaj = "",
+        allatkategoria = "",
+        mikorveszettel = "",
+        allatneme = "",
+        allatszine = "",
+        allatmerete = "",
+        egyeb_infok = "",
+        eltuneshelyszine = "",
+        talalt_elveszett = "",
     } = req.body;
-  
+
     // Fájl elérési útja
     const filePath = req.file ? req.file.path : null;
-  
+
     // Validáció
     if (
-      !allatfaj ||
-      !mikorveszettel ||
-      !allatszine ||
-      !allatmerete ||
-      !eltuneshelyszine
+        !allatfaj ||
+        !mikorveszettel ||
+        !allatszine ||
+        !allatmerete ||
+        !eltuneshelyszine
     ) {
-      return res.json({ error: "Minden mező kitöltése kötelező!" });
+        return res.json({ error: "Minden mező kitöltése kötelező!" });
     }
-  
+
     try {
-      // Új állat létrehozása az adatbázisban
-      const newEAnimal = await prisma.animal.create({
-        data: {
-          allatfaj: allatfaj,
-          kategoria: allatkategoria,
-          datum: mikorveszettel,
-          neme: allatneme,
-          szin: allatszine,
-          meret: allatmerete,
-          egyeb_info: egyeb_infok,
-          helyszin: eltuneshelyszine,
-          visszakerult_e: "false",
-          userId: userId,
-          talalt_elveszett: talalt_elveszett || "talaltelveszett", // Alapértelmezett érték
-          filePath: filePath, // Kép elérési útjának mentése
-          nev: "",
-        },
-      });
-  
-      res.json({
-        message: "Sikeres adatfelvitel!",
-        newEAnimal,
-      });
+        // Új állat létrehozása az adatbázisban
+        const newEAnimal = await prisma.animal.create({
+            data: {
+                allatfaj: allatfaj,
+                kategoria: allatkategoria,
+                datum: mikorveszettel,
+                neme: allatneme,
+                szin: allatszine,
+                meret: allatmerete,
+                egyeb_info: egyeb_infok,
+                helyszin: eltuneshelyszine,
+                visszakerult_e: "false",
+                userId: userId,
+                talalt_elveszett: talalt_elveszett || "talaltelveszett", // Alapértelmezett érték
+                filePath: filePath, // Kép elérési útjának mentése
+                nev: "",
+            },
+        });
+
+        res.json({
+            message: "Sikeres adatfelvitel!",
+            newEAnimal,
+        });
     } catch (error) {
-      console.error("Hiba történt az adatfelvitel során:", error);
-      res.status(500).json({ error: "Hiba történt az adatfelvitel során." });
+        console.error("Hiba történt az adatfelvitel során:", error);
+        res.status(500).json({ error: "Hiba történt az adatfelvitel során." });
     }
 };
 
 const getAllUser = async (req, res) => {
 
     const users = await prisma.user.findMany({
-        where : {
+        where: {
             NOT: {
                 id: req.user.id
             }
@@ -327,7 +330,7 @@ const osszesAdat = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-    const userId = parseInt(req.params.id, 10);
+    const userId = parseInt(req.params.id, 10); // Felhasználó ID-ja
     const { username, email, phonenumber, admin, password } = req.body;
 
     try {
@@ -346,10 +349,44 @@ const updateUser = async (req, res) => {
             where: { id: userId },
             data: updateData,
         });
-        res.json({ message: "Felhasználó adatai frissítve!", updatedUser });
+        res.json({ message: "Felhasználó adatai frissítve!", updatedUser }); // JSON válasz
     } catch (error) {
         console.error("Hiba történt a felhasználó frissítése során:", error);
-        res.status(500).json({ error: "Hiba történt a felhasználó frissítése során" });
+        res.status(500).json({ error: "Hiba történt a felhasználó frissítése során" }); // JSON válasz
+    }
+};
+
+const updatePassword = async (req, res) => {
+    const userId = parseInt(req.params.id, 10); // Felhasználó ID-ja
+    const { oldPassword, newPassword } = req.body;
+
+    try {
+        // Ellenőrizzük, hogy a felhasználó létezik-e
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: "Felhasználó nem található!" });
+        }
+
+        // Ellenőrizzük a régi jelszót
+        const isPasswordValid = await argon2.verify(user.password, oldPassword);
+        if (!isPasswordValid) {
+            return res.status(400).json({ error: "Hibás régi jelszó!" });
+        }
+
+        // Új jelszó titkosítása
+        const hashedPassword = await argon2.hash(newPassword);
+        await prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedPassword },
+        });
+
+        res.json({ message: "Jelszó sikeresen frissítve!" }); // JSON válasz
+    } catch (error) {
+        console.error("Hiba történt a jelszó frissítése során:", error);
+        res.status(500).json({ error: "Hiba történt a jelszó frissítése során" }); // JSON válasz
     }
 };
 
@@ -444,9 +481,9 @@ const deleteUser = async (req, res) => {
 };
 
 const megtalalltallatok = async (req, res) => {
-    const  igaz = "true";
+    const igaz = "true";
     const animals = await prisma.animal.findMany({
-        where: {visszakerult_e: igaz},
+        where: { visszakerult_e: igaz },
         include: {
             user: true // Ez fogja lekérni a hozzá tartozó felhasználó adatait is
         }
@@ -474,6 +511,7 @@ const userposts = async (req, res) => {
 };
 
 const editmyprofile = async (req, res) => {
+    console.log("editmyprofile called with data:", req.body); // Hibakereséshez
     const userId = req.user.id; // A bejelentkezett felhasználó ID-ja
     const { username, email, oldPassword, newPassword } = req.body;
 
@@ -521,6 +559,57 @@ const editmyprofile = async (req, res) => {
     }
 };
 
+const sendMessage = async (req, res) => {
+    const { receiverId, content } = req.body;
+    const senderId = req.user.id; // A bejelentkezett felhasználó ID-ja
+
+    if (!receiverId || !content) {
+        return res.status(400).json({ error: "Minden mező kitöltése kötelező!" });
+    }
+
+    try {
+        const newMessage = await prisma.message.create({
+            data: {
+                senderId,
+                receiverId,
+                content,
+            },
+        });
+
+        res.json({ message: "Üzenet sikeresen elküldve!", newMessage });
+    } catch (error) {
+        console.error("Hiba történt az üzenet küldése során:", error);
+        res.status(500).json({ error: "Hiba történt az üzenet küldése során" });
+    }
+};
+
+const getMessages = async (req, res) => {
+    const userId = req.user.id; // A bejelentkezett felhasználó ID-ja
+
+    try {
+        const messages = await prisma.message.findMany({
+            where: {
+                OR: [
+                    { senderId: userId }, // Az általa küldött üzenetek
+                    { receiverId: userId }, // Az általa kapott üzenetek
+                ],
+            },
+            include: {
+                sender: true, // A küldő felhasználó adatai
+                receiver: true, // A címzett felhasználó adatai
+            },
+            orderBy: {
+                createdAt: 'desc', // Legújabb üzenetek elöl
+            },
+        });
+
+        res.json(messages);
+    } catch (error) {
+        console.error("Hiba történt az üzenetek lekérése során:", error);
+        res.status(500).json({ error: "Hiba történt az üzenetek lekérése során" });
+    }
+};
+
 
 module.exports = {
     register,
@@ -539,6 +628,9 @@ module.exports = {
     megtalalltallatok,
     userposts,
     osszeselveszett,
-    editmyprofile
- 
+    editmyprofile,
+    sendMessage,
+    getMessages,
+    updatePassword
+
 };

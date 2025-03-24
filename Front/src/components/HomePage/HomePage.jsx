@@ -1,9 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTheme } from "../../context/ThemeContext";
+import LostAnimalTemplate from "../Animals/LostAnimalTemplate";
+import { useInView } from "react-intersection-observer"; // Importáljuk a hookot
 
 const Home = () => {
-  const [foundAnimals, setFoundAnimals] = useState([]);
+  const [lostAnimals, setLostAnimals] = useState([]);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
+  const { theme } = useTheme();
+
+  // Intersection Observer hookok
+  const { ref: heroRef, inView: heroInView } = useInView({ triggerOnce: true, threshold: 0.1 });
+  const { ref: storiesRef, inView: storiesInView } = useInView({ triggerOnce: true, threshold: 0.1 });
+  const { ref: galleryRef, inView: galleryInView } = useInView({ triggerOnce: true, threshold: 0.1 });
+  const { ref: ctaRef, inView: ctaInView } = useInView({ triggerOnce: true, threshold: 0.1 });
 
   const stories = [
     {
@@ -21,27 +31,12 @@ const Home = () => {
       title: "Sarah és a nyúla",
       description: "A nyúlam nélkül nem lett volna teljes az otthonunk. Köszönöm, hogy segítettetek megtalálni!",
     },
-    {
-      image: "https://images.unsplash.com/photo-1583511655826-05700d52f4d9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      title: "Kata és a papagája",
-      description: "A papagájam nélkül nem lett volna teljes az otthonunk. Köszönöm, hogy segítettetek megtalálni!",
-    },
-    {
-      image: "https://images.unsplash.com/photo-1583511655826-05700d52f4d9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      title: "Péter és a teknőse",
-      description: "A teknősöm nélkül nem lett volna teljes az otthonunk. Köszönöm, hogy segítettetek megtalálni!",
-    },
-    {
-      image: "https://images.unsplash.com/photo-1583511655826-05700d52f4d9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      title: "Anna és a hörcsögje",
-      description: "A hörcsögöm nélkül nem lett volna teljes az otthonunk. Köszönöm, hogy segítettetek megtalálni!",
-    },
   ];
 
   useEffect(() => {
-    const fetchFoundAnimals = async () => {
+    const fetchLostAnimals = async () => {
       try {
-        const response = await fetch("http://localhost:8000/felhasznalok/megtalaltallatok", {
+        const response = await fetch("http://localhost:8000/felhasznalok/osszallat", {
           method: 'GET',
           headers: {
             "Content-type": "application/json",
@@ -53,14 +48,14 @@ const Home = () => {
         }
 
         const data = await response.json();
-        const latestFoundAnimals = data.slice(0, 4);
-        setFoundAnimals(latestFoundAnimals);
+        const latestLostAnimals = data.slice(0, 3); // Csak a legfrissebb 3 elveszett állatot mentjük
+        setLostAnimals(latestLostAnimals);
       } catch (error) {
         console.error("Hiba történt az állatok lekérése során:", error);
       }
     };
 
-    fetchFoundAnimals();
+    fetchLostAnimals();
   }, []);
 
   useEffect(() => {
@@ -106,19 +101,23 @@ const Home = () => {
   };
 
   return (
-<div className="bg-gray-100 min-h-screen pt-16 md:pt-0"> {/* Padding-top hozzáadva */}
+    <div className={`${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-[#073F48]"} min-h-screen pt-16 md:pt-0 no-scroll`}>
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-[#63E2C6] to-[#5ABCB9] text-white py-12 md:py-32 relative overflow-hidden">
+      <div
+        ref={heroRef}
+        className={`${theme === "dark" ? "bg-gray-800" : "bg-gradient-to-r from-[#64B6FF] to-[#A7D8FF]"} text-white py-12 md:py-32 relative overflow-hidden transition-opacity duration-1000 ${heroInView ? "opacity-100" : "opacity-0"
+          }`}
+      >
         <div className="container mx-auto px-4 text-center relative z-10">
           <h1 className="text-3xl md:text-6xl font-bold mb-4">Segítsünk az Állatoknak Hazatalálni!</h1>
           <p className="text-sm md:text-2xl mb-6">
             Az "Állatkereső és -megtaláló Rendszer" segít az elveszett háziállatok gyors és hatékony visszakerülésében.
           </p>
           <div className="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4">
-            <button className="bg-white text-[#074F57] font-semibold py-2 px-4 md:py-3 md:px-8 rounded-full hover:bg-gray-100 transition duration-300 shadow-lg text-sm md:text-base">
+            <button className={`${theme === "dark" ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-white hover:bg-gray-100 text-[#074F57]"} font-semibold py-2 px-4 md:py-3 md:px-8 rounded-full transition duration-300 shadow-lg text-sm md:text-base`}>
               <Link to={"/elveszettallat"}>Segítség kérése</Link>
             </button>
-            <button className="bg-transparent border-2 border-white text-white font-semibold py-2 px-4 md:py-3 md:px-8 rounded-full hover:bg-white hover:text-[#074F57] transition duration-300 shadow-lg text-sm md:text-base">
+            <button className={`${theme === "dark" ? "bg-transparent border-2 border-gray-700 hover:bg-gray-700" : "bg-transparent border-2 border-white hover:bg-white hover:text-[#074F57]"} text-white font-semibold py-2 px-4 md:py-3 md:px-8 rounded-full transition duration-300 shadow-lg text-sm md:text-base`}>
               <Link to={"/talaltallat"}>Állatot találtam</Link>
             </button>
           </div>
@@ -134,15 +133,19 @@ const Home = () => {
       </div>
 
       {/* Boldog Történetek */}
-      <div className="container mx-auto px-4 py-8 md:py-20">
-        <h2 className="text-2xl md:text-4xl font-bold text-center text-[#074F57] mb-6 md:mb-16">Elveszve... de már otthon!</h2>
+      <div
+        ref={storiesRef}
+        className={`container mx-auto px-4 py-8 md:py-20 transition-opacity duration-1000 ${storiesInView ? "opacity-100" : "opacity-0"
+          }`}
+      >
+        <h2 className={`text-2xl md:text-4xl font-bold text-center ${theme === "dark" ? "text-white" : "text-[#073F48]"} mb-6 md:mb-16`}>Elveszve... de már otthon!</h2>
         <div className="relative flex justify-center items-center">
           {/* Balra nyíl */}
           <button
             onClick={goToPreviousStory}
-            className="absolute left-[-20px] md:left-[-40px] top-1/2 transform -translate-y-1/2 bg-white p-2 md:p-3 rounded-full shadow-lg z-10 hover:bg-gray-100 transition duration-300"
+            className={`absolute left-[-20px] md:left-[-40px] top-1/2 transform -translate-y-1/2 ${theme === "dark" ? "bg-gray-700 hover:bg-gray-600" : "bg-white hover:bg-gray-100"} p-2 md:p-3 rounded-full shadow-lg z-10 transition duration-300`}
           >
-            <svg className="w-4 h-4 md:w-6 md:h-6 text-[#074F57]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className={`w-4 h-4 md:w-6 md:h-6 ${theme === "dark" ? "text-white" : "text-[#073F48]"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
             </svg>
           </button>
@@ -150,18 +153,18 @@ const Home = () => {
           {/* Jobbra nyíl */}
           <button
             onClick={goToNextStory}
-            className="absolute right-[-20px] md:right-[-40px] top-1/2 transform -translate-y-1/2 bg-white p-2 md:p-3 rounded-full shadow-lg z-10 hover:bg-gray-100 transition duration-300"
+            className={`absolute right-[-20px] md:right-[-40px] top-1/2 transform -translate-y-1/2 ${theme === "dark" ? "bg-gray-700 hover:bg-gray-600" : "bg-white hover:bg-gray-100"} p-2 md:p-3 rounded-full shadow-lg z-10 transition duration-300`}
           >
-            <svg className="w-4 h-4 md:w-6 md:h-6 text-[#074F57]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className={`w-4 h-4 md:w-6 md:h-6 ${theme === "dark" ? "text-white" : "text-[#073F48]"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
             </svg>
           </button>
 
           {/* Történet kártyák */}
-          <div className="flex space-x-4 md:space-x-8 items-center w-full md:w-auto overflow-hidden">
+          <div className="flex space-x-4 md:space-x-8 items-center w-full md:w-auto">
             {/* Mobilnézet: 1 kép */}
             <div className="md:hidden w-full">
-              <div className="bg-white p-4 md:p-8 rounded-2xl shadow-xl">
+              <div className={`${theme === "dark" ? "bg-gray-800" : "bg-gray-100"} p-4 md:p-8 rounded-2xl shadow-xl`}>
                 <div className="relative h-32 md:h-60 mb-4 overflow-hidden rounded-lg">
                   <img
                     src={stories[currentStoryIndex].image}
@@ -169,29 +172,28 @@ const Home = () => {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <h3 className="text-lg md:text-2xl font-bold text-[#074F57] mb-2 md:mb-4">{stories[currentStoryIndex].title}</h3>
-                <p className="text-gray-600 text-xs md:text-base">{stories[currentStoryIndex].description}</p>
+                <h3 className={`text-lg md:text-2xl font-bold ${theme === "dark" ? "text-white" : "text-[#073F48]"} mb-2 md:mb-4`}>{stories[currentStoryIndex].title}</h3>
+                <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-600"} text-xs md:text-base`}>{stories[currentStoryIndex].description}</p>
               </div>
             </div>
 
             {/* Gépi nézet: 3 kép */}
-            <div className="hidden md:flex space-x-8">
+            <div className="hidden md:flex gap-6">
               {getVisibleStories().map((index, i) => (
                 <div
                   key={index}
-                  className={`bg-white p-6 md:p-8 rounded-2xl shadow-xl transition-all duration-300 ${
-                    i === 1 ? "scale-110 z-20" : "scale-90 opacity-75 z-10"
-                  }`}
+                  className={`${theme === "dark" ? "bg-gray-800" : "bg-gray-100"} p-6 md:p-8 rounded-2xl shadow-xl transition-all duration-300 ${i === 1 ? "scale-110 transform-origin-center z-20" : "scale-90 opacity-75 z-10"
+                    }`}
                 >
-                  <div className="relative h-48 md:h-60 mb-4 overflow-hidden rounded-lg">
+                  <div className="relative h-48 md:h-60 mb-4 overflow-hidden rounded-2xl">
                     <img
                       src={stories[index].image}
                       alt={stories[index].title}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <h3 className="text-xl md:text-2xl font-bold text-[#074F57] mb-4">{stories[index].title}</h3>
-                  <p className="text-gray-600 text-sm md:text-base">{stories[index].description}</p>
+                  <h3 className={`text-xl md:text-2xl font-bold ${theme === "dark" ? "text-white" : "text-[#073F48]"} mb-4`}>{stories[index].title}</h3>
+                  <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-600"} text-sm md:text-base`}>{stories[index].description}</p>
                 </div>
               ))}
             </div>
@@ -199,54 +201,51 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Hazatalált Állatok Galériája */}
-      <div className="bg-[#F0EDEE] py-8 md:py-20">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-4xl font-bold text-center text-[#074F57] mb-6 md:mb-16">Hazatalált Állatok Galériája</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-            {foundAnimals.map((animal) => (
-              <div
-                key={animal.id}
-                className="bg-white rounded-2xl shadow-xl overflow-hidden transform transition-transform duration-300 hover:scale-105"
-              >
-                <div className="relative h-32 md:h-48 overflow-hidden ">
-                  <img
-                    src={`http://localhost:8000/${animal.filePath}`}
-                    alt={animal.nev}
-                    className="w-full h-full object-cover object-top"
-                  />
-                  <div className="absolute top-2 left-2 bg-green-500 rounded-full p-1 md:p-2">
-                    <svg className="w-3 h-3 md:w-4 md:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  </div>
+      {/* Elveszett Állatok Galériája */}
+      <div
+        ref={galleryRef}
+        className={`${theme === "dark" ? "bg-gray-800" : "bg-[#F0EDEE]"} py-8 md:py-20 transition-opacity duration-1000 ${galleryInView ? "opacity-100" : "opacity-0"
+          }`}
+      >
+        <div className="container mx-auto px-4 ">
+          <h2 className={`text-2xl md:text-4xl font-bold text-center ${theme === "dark" ? "text-white" : "text-[#073F48]"} mb-6 md:mb-16`}>Elveszett Állatok Galériája</h2>
+          <div className="flex flex-wrap justify-center gap-6 ">
+            {lostAnimals.length > 0 ? (
+              lostAnimals.map((animal) => (
+                <div
+                  key={animal.id}
+                  className="transition-transform duration-300 hover:scale-105 hover:shadow-2xl "
+                >
+                  <LostAnimalTemplate animal={animal} />
                 </div>
-                <div className="p-3 md:p-4">
-                  <h3 className="text-sm md:text-lg font-bold text-[#074F57]">{animal.nev}</h3>
-                  <p className="text-xs md:text-gray-600">{animal.faj}</p>
-                </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className={`${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>Nincs adat</p>
+            )}
           </div>
           <div className="text-center mt-6 md:mt-12">
             <Link
-              to="/megtalaltallatok"
-              className="bg-[#63E2C6] text-white font-semibold py-2 px-4 md:py-3 md:px-8 rounded-full hover:bg-[#5ABCB9] transition duration-300 shadow-lg text-sm md:text-base"
+              to="/osszallat"
+              className={`${theme === "dark" ? "bg-gray-700 hover:bg-gray-600" : "bg-[#64B6FF] hover:bg-[#88c4f8]"} text-white font-semibold py-2 px-4 md:py-3 md:px-8 rounded-full transition duration-300 shadow-lg text-sm md:text-base`}
             >
-              További megtalált állatok megtekintése
+              További elveszett állatok megtekintése
             </Link>
           </div>
         </div>
       </div>
 
       {/* CTA (Call to Action) */}
-      <div className="bg-gradient-to-r from-[#63E2C6] to-[#5ABCB9] text-white py-8 md:py-20">
+      <div
+        ref={ctaRef}
+        className={`py-8 md:py-20 transition-opacity duration-1000 ${ctaInView ? "opacity-100" : "opacity-0"
+          }`}
+      >
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-4xl font-bold mb-4">Segítsünk Együtt!</h2>
-          <p className="text-sm md:text-2xl mb-6">
+          <h2 className={`text-2xl md:text-4xl font-bold mb-4 ${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>Segítsünk Együtt!</h2>
+          <p className={`text-sm md:text-2xl mb-6 ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}>
             Csatlakozz közösségünkhöz, és segíts az elveszett állatok hazatalálásában.
           </p>
-          <button className="bg-white text-[#074F57] font-semibold py-2 px-4 md:py-3 md:px-8 rounded-full hover:bg-gray-100 transition duration-300 shadow-lg text-sm md:text-base">
+          <button className={`${theme === "dark" ? "bg-gray-700 hover:bg-gray-600  text-white " : "bg-white hover:bg-gray-100"} text-[#073F48] font-semibold py-2 px-4 md:py-3 md:px-8 rounded-full transition duration-300 shadow-lg text-sm md:text-base`}>
             <Link to={"/regisztracio"}>Regisztrálj most</Link>
           </button>
         </div>

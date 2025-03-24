@@ -1,6 +1,8 @@
 const express = require("express");
+const userRoutes = require('./routes/userRoutes');
 const cors = require("cors");
 const { expressCspHeader, INLINE, NONE, SELF } = require('express-csp-header');
+const profilePictureRoutes = require('./routes/profilePictureRoutes'); 
 const path = require('path');
 const app = express();
 // other app.use() options ...
@@ -15,10 +17,11 @@ app.use(expressCspHeader({
 
 app.use(cors());
 app.use(express.json())
-
-app.use("/felhasznalok", require('./routes/userRoutes'));
+app.use("/felhasznalok", userRoutes); 
+app.use('/api', profilePictureRoutes); // Új útvonal a profilkép kezeléséhez
 //http://localhost:8000/images/1737928685866_kutyageci.jpg
-app.use("/images", express.static(path.join(__dirname, "images"))); // middleware
+app.use('/images', express.static(path.join(__dirname, 'images')));
+
 
 app.listen(8000, () => {
     console.log("Fut a szerver")

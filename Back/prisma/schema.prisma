@@ -13,30 +13,28 @@ model User {
   username    String
   password    String
   phonenumber String
-  admin       String  @default("true")
+  profilePicture  String?  // Opcionális profilkép mező
+  admin       String   @default("true")
   animals     Animal[] @relation("UserAnimals")
 
   @@map("users")
 }
 
 model Animal {
-  id               Int      @id @default(autoincrement())
+  id               Int     @id @default(autoincrement())
   talalt_elveszett String
   allatfaj         String
-  kategoria        String
+  kategoria        String? // Opcionális mező
   datum            String
   nev              String
   neme             String
   szin             String
   meret            String
-  egyeb_info       String
+  egyeb_info       String? // Opcionális mező
   helyszin         String
-  filePath          String
+  filePath         String
   visszakerult_e   String
 
-
-  userId           Int
-  user             User     @relation("UserAnimals", fields: [userId], references: [id])
-
+  userId Int
+  user   User @relation("UserAnimals", fields: [userId], references: [id])
 }
-

@@ -4,14 +4,15 @@ import UserContext from "../../context/UserContext";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { FaPaw, FaCalendarAlt, FaMapMarkerAlt, FaImage, FaInfoCircle, FaVenusMars, FaRuler } from "react-icons/fa";
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-
+import { useTheme } from "../../context/ThemeContext";
 
 const RegisterThePetIFound = () => {
   const { SetRefresh } = useContext(UserContext);
   const navigate = useNavigate();
   const token = localStorage.getItem("usertoken");
+  const { theme } = useTheme();
 
   let formObj = {
     talaltvagyelveszett: "talalt",
@@ -29,11 +30,13 @@ const RegisterThePetIFound = () => {
   const [formState, setFormState] = useState(formObj);
   const [file, setFile] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [preview, setPreview] = useState(null); // Új állapot a kép előnézetének
+  const [preview, setPreview] = useState(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    // Téma alkalmazása a body elemre
+    document.body.className = theme === "dark" ? "bg-gray-900 text-white" : "bg-gradient-to-r from-[#64B6FF] to-[#A7D8FF] text-[#073F48]";
+  }, [theme]);
 
   const writeData = (e) => {
     setFormState((prevState) => ({
@@ -46,7 +49,7 @@ const RegisterThePetIFound = () => {
     setSelectedDate(date);
     setFormState((prevState) => ({
       ...prevState,
-      mikorveszettel: date.toISOString().split('T')[0],
+      mikorveszettel: date.toISOString().split("T")[0],
     }));
   };
 
@@ -56,7 +59,7 @@ const RegisterThePetIFound = () => {
       setFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreview(reader.result); // Kép előnézetének beállítása
+        setPreview(reader.result);
       };
       reader.readAsDataURL(file);
     }
@@ -90,11 +93,6 @@ const RegisterThePetIFound = () => {
       if (data.message === "Sikeres adatfelvitel!") {
         toast.success("Sikeres adatfelvitel!");
         SetRefresh((prev) => !prev);
-      
-        // 5 másodperc várakozás után átirányítás
-        //setTimeout(() => {
-        //  navigate("/home");
-        //}, 1200); // 1000 ms = 1 másodperc
       } else {
         toast.error(data.error);
       }
@@ -105,19 +103,20 @@ const RegisterThePetIFound = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-[#63E2C6] to-[#5ABCB9]">
-      <div className="bg-[#F0EDEE] p-10 rounded-3xl shadow-xl w-full max-w-2xl border-2 border-[#074F57]">
-        <h1 className="text-4xl font-bold text-center text-[#074F57] mb-10">Megtalált állat adatai</h1>
-        <div className="grid grid-cols-2 gap-6">
+    <div className={`min-h-screen flex items-center justify-center ${theme === "dark" ? "bg-gray-900" : "bg-gradient-to-r from-[#64B6FF] to-[#A7D8FF]"} p-4`}>
+      {/* Bal oldal: Űrlap */}
+      <div className={`${theme === "dark" ? "bg-gray-800" : "bg-[#F0EDEE]"} p-6 rounded-3xl shadow-xl w-full max-w-lg border-2 ${theme === "dark" ? "border-gray-700" : "border-[#1A73E8]"}`}>
+        <h1 className={`text-3xl font-bold text-center ${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>Megtalált állat adatai</h1>
+        <div className="grid grid-cols-2 gap-4">
           {/* Állatfaj */}
           <div className="col-span-1">
-            <label className="block text-xl font-medium text-[#074F57]">Állatfaj</label>
+            <label className={`block text-lg font-medium ${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>Állatfaj</label>
             <div className="relative w-full">
-              <FaPaw className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#5ABCB9] text-xl" />
+              <FaPaw className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === "dark" ? "text-gray-400" : "text-[#1A73E8]"} text-lg`} />
               <input
                 id="allatfaj"
                 type="text"
-                className="w-full pl-12 pr-4 py-3 border-2 border-[#63E2C6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5ABCB9] text-lg text-[#074F57]"
+                className={`w-full pl-10 pr-3 py-2 border-2 ${theme === "dark" ? "border-gray-700 bg-gray-700 text-white" : "border-[#1A73E8] bg-white text-[#073F48]"} rounded-lg focus:outline-none focus:ring-2 ${theme === "dark" ? "focus:ring-gray-500" : "focus:ring-[#1A73E8]"} text-base`}
                 placeholder="Állatfaj"
                 onChange={writeData}
               />
@@ -126,13 +125,13 @@ const RegisterThePetIFound = () => {
 
           {/* Állatkategória */}
           <div className="col-span-1">
-            <label className="block text-xl font-medium text-[#074F57]">Állatkategória (opcionális)</label>
+            <label className={`block text-lg font-medium ${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>Állatkategória (opcionális)</label>
             <div className="relative w-full">
-              <FaPaw className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#5ABCB9] text-xl" />
+              <FaPaw className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === "dark" ? "text-gray-400" : "text-[#1A73E8]"} text-lg`} />
               <input
                 id="allatkategoria"
                 type="text"
-                className="w-full pl-12 pr-4 py-3 border-2 border-[#63E2C6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5ABCB9] text-lg text-[#074F57]"
+                className={`w-full pl-10 pr-3 py-2 border-2 ${theme === "dark" ? "border-gray-700 bg-gray-700 text-white" : "border-[#1A73E8] bg-white text-[#073F48]"} rounded-lg focus:outline-none focus:ring-2 ${theme === "dark" ? "focus:ring-gray-500" : "focus:ring-[#1A73E8]"} text-base`}
                 placeholder="Állatkategória"
                 onChange={writeData}
               />
@@ -141,13 +140,13 @@ const RegisterThePetIFound = () => {
 
           {/* Dátumválasztó */}
           <div className="col-span-1">
-            <label className="block text-xl font-medium text-[#074F57]">Találat Időpontja</label>
+            <label className={`block text-lg font-medium ${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>Találat Időpontja</label>
             <div className="relative w-full">
               <DatePicker
                 selected={selectedDate}
                 onChange={handleDateChange}
-                className="w-full pr-4 pl-4 py-3 border-2 border-[#63E2C6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5ABCB9] text-lg text-[#074F57]"
-                placeholderText="Eltűnés Időpontja"
+                className={`w-full pr-3 pl-3 py-2 border-2 ${theme === "dark" ? "border-gray-700 bg-gray-700 text-white" : "border-[#1A73E8] bg-white text-[#073F48]"} rounded-lg focus:outline-none focus:ring-2 ${theme === "dark" ? "focus:ring-gray-500" : "focus:ring-[#1A73E8]"} text-base`}
+                placeholderText="Találat Időpontja"
                 dateFormat="yyyy.MM.dd"
               />
             </div>
@@ -155,13 +154,13 @@ const RegisterThePetIFound = () => {
 
           {/* Kisállat Színe */}
           <div className="col-span-1">
-            <label className="block text-xl font-medium text-[#074F57]">Kisállat Színe</label>
+            <label className={`block text-lg font-medium ${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>Kisállat Színe</label>
             <div className="relative w-full">
-              <FaPaw className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#5ABCB9] text-xl" />
+              <FaPaw className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === "dark" ? "text-gray-400" : "text-[#1A73E8]"} text-lg`} />
               <input
                 id="allatszine"
                 type="text"
-                className="w-full pl-12 pr-4 py-3 border-2 border-[#63E2C6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5ABCB9] text-lg text-[#074F57]"
+                className={`w-full pl-10 pr-3 py-2 border-2 ${theme === "dark" ? "border-gray-700 bg-gray-700 text-white" : "border-[#1A73E8] bg-white text-[#073F48]"} rounded-lg focus:outline-none focus:ring-2 ${theme === "dark" ? "focus:ring-gray-500" : "focus:ring-[#1A73E8]"} text-base`}
                 placeholder="Kisállat Színe"
                 onChange={writeData}
               />
@@ -170,12 +169,12 @@ const RegisterThePetIFound = () => {
 
           {/* Kisállat Mérete */}
           <div className="col-span-1">
-            <label className="block text-xl font-medium text-[#074F57]">Kisállat Mérete</label>
+            <label className={`block text-lg font-medium ${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>Kisállat Mérete</label>
             <div className="relative w-full">
-              <FaRuler className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#5ABCB9] text-xl" />
+              <FaRuler className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === "dark" ? "text-gray-400" : "text-[#1A73E8]"} text-lg`} />
               <select
                 id="allatmerete"
-                className="w-full pl-12 pr-4 py-3 border-2 border-[#63E2C6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5ABCB9] text-lg text-[#074F57]"
+                className={`w-full pl-10 pr-3 py-2 border-2 ${theme === "dark" ? "border-gray-700 bg-gray-700 text-white" : "border-[#1A73E8] bg-white text-[#073F48]"} rounded-lg focus:outline-none focus:ring-2 ${theme === "dark" ? "focus:ring-gray-500" : "focus:ring-[#1A73E8]"} text-base`}
                 onChange={writeData}
                 value={formState.allatmerete}
               >
@@ -189,13 +188,13 @@ const RegisterThePetIFound = () => {
 
           {/* Találat Helyszíne */}
           <div className="col-span-1">
-            <label className="block text-xl font-medium text-[#074F57]">Találat Helyszíne</label>
+            <label className={`block text-lg font-medium ${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>Találat Helyszíne</label>
             <div className="relative w-full">
-              <FaMapMarkerAlt className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#5ABCB9] text-xl" />
+              <FaMapMarkerAlt className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === "dark" ? "text-gray-400" : "text-[#1A73E8]"} text-lg`} />
               <input
                 id="eltuneshelyszine"
                 type="text"
-                className="w-full pl-12 pr-4 py-3 border-2 border-[#63E2C6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5ABCB9] text-lg text-[#074F57]"
+                className={`w-full pl-10 pr-3 py-2 border-2 ${theme === "dark" ? "border-gray-700 bg-gray-700 text-white" : "border-[#1A73E8] bg-white text-[#073F48]"} rounded-lg focus:outline-none focus:ring-2 ${theme === "dark" ? "focus:ring-gray-500" : "focus:ring-[#1A73E8]"} text-base`}
                 placeholder="Találat Helyszíne"
                 onChange={writeData}
               />
@@ -204,12 +203,12 @@ const RegisterThePetIFound = () => {
 
           {/* Egyéb Információk */}
           <div className="col-span-2">
-            <label className="block text-xl font-medium text-[#074F57]">Egyéb Információk (opcionális)</label>
+            <label className={`block text-lg font-medium ${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>Egyéb Információk (opcionális)</label>
             <div className="relative w-full">
-              <FaInfoCircle className="absolute left-4 top-4 transform text-[#5ABCB9] text-xl" />
+              <FaInfoCircle className={`absolute left-3 top-3 transform ${theme === "dark" ? "text-gray-400" : "text-[#1A73E8]"} text-lg`} />
               <textarea
                 id="egyeb_infok"
-                className="w-full pl-12 pr-4 py-3 border-2 border-[#63E2C6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5ABCB9] text-lg text-[#074F57] resize-none"
+                className={`w-full pl-10 pr-3 py-2 border-2 ${theme === "dark" ? "border-gray-700 bg-gray-700 text-white" : "border-[#1A73E8] bg-white text-[#073F48]"} rounded-lg focus:outline-none focus:ring-2 ${theme === "dark" ? "focus:ring-gray-500" : "focus:ring-[#1A73E8]"} text-base resize-none`}
                 placeholder="Egyéb Információk"
                 onChange={writeData}
                 rows={2}
@@ -219,17 +218,17 @@ const RegisterThePetIFound = () => {
 
           {/* Kép feltöltése */}
           <div className="col-span-2">
-            <label className="block text-xl font-medium text-[#074F57]">Kép feltöltése</label>
+            <label className={`block text-lg font-medium ${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>Kép feltöltése</label>
             <div className="relative w-full">
-              <FaImage className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#5ABCB9] text-xl" />
+              <FaImage className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === "dark" ? "text-gray-400" : "text-[#1A73E8]"} text-lg`} />
               <input
                 type="file"
-                onChange={handleFileChange} // Módosított függvény
-                className="w-full pl-12 pr-4 py-3 border-2 border-[#63E2C6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5ABCB9] text-lg text-[#074F57]"
+                onChange={handleFileChange}
+                className={`w-full pl-10 pr-3 py-2 border-2 ${theme === "dark" ? "border-gray-700 bg-gray-700 text-white" : "border-[#1A73E8] bg-white text-[#073F48]"} rounded-lg focus:outline-none focus:ring-2 ${theme === "dark" ? "focus:ring-gray-500" : "focus:ring-[#1A73E8]"} text-base`}
                 accept="image/*"
               />
             </div>
-            {preview && ( // Kép előnézetének megjelenítése
+            {preview && (
               <div className="mt-4 flex justify-center">
                 <img src={preview} alt="Preview" className="w-24 h-24 object-cover rounded" />
               </div>
@@ -240,12 +239,33 @@ const RegisterThePetIFound = () => {
           <div className="col-span-2">
             <button
               onClick={regAnimal}
-              className="w-full bg-[#63E2C6] text-white py-3 px-5 rounded-lg hover:bg-[#5ABCB9] transition duration-300 text-xl font-semibold"
+              className={`w-full ${theme === "dark" ? "bg-gray-700 hover:bg-gray-600" : "bg-[#1A73E8] hover:bg-[#1557B0]"} text-white py-2 px-4 rounded-lg transition duration-300 text-lg font-semibold`}
             >
               Adatfelvitel
             </button>
             <ToastContainer />
           </div>
+        </div>
+      </div>
+
+      {/* Jobb oldal: Kép és inspiráló szöveg */}
+      <div className="hidden xl:flex flex-col justify-center items-center ml-8 w-1/3">
+        <div className="mt-6 text-center p-8 bg-opacity-20  ">
+          <h2 className={`text-4xl font-bold ${theme === "dark" ? "text-white" : "text-[#074F57]"} mb-6`}>
+            Együtt segíthetünk hazatalálni!
+          </h2>
+          <p className={`text-lg ${theme === "dark" ? "text-gray-300" : "text-[#074F57]"} mb-6 leading-relaxed`}>
+            Minden nap rengeteg kisállat téved el, és egy pillanat alatt elveszíthetjük őket. Az elveszett házikedvencek minden egyes gazdája szívében ott az aggodalom, és a vágy, hogy újra együtt lehessenek kedvencükkel. <span className={`${theme === "dark" ? "text-gray-200" : "text-[#074F57]"} font-semibold`}>Éppen ezért létfontosságú, hogy összefogjunk, és segítsük őket visszatalálni.</span>
+          </p>
+          <p className={`text-lg ${theme === "dark" ? "text-gray-300" : "text-[#074F57]"} mb-6 leading-relaxed`}>
+            Az ilyen esetekben az emberek közössége az, ami igazán számít. A közösségi összefogás, az összegyűjtött információk és az egymásra figyelés segíthet gyorsabban és biztonságosabban visszajuttatni az állatokat otthonukba. Mi mindannyian egy nagy család vagyunk, és <span className={`${theme === "dark" ? "text-gray-200" : "text-[#074F57]"} font-semibold`}>együtt erősebbek vagyunk.</span>
+          </p>
+          <p className={`text-lg ${theme === "dark" ? "text-gray-300" : "text-[#074F57]"} mb-6 leading-relaxed`}>
+            Az elmúlt években több mint <strong className={`${theme === "dark" ? "text-gray-200" : "text-[#074F57]"} font-semibold`}>1,000,000</strong> elveszett állat talált már hazára, köszönhetően az olyan embereknek, mint Te. Egy egyszerű megosztás, egy segítő kéz, vagy egy kis figyelmesség mind hozzájárulhat ahhoz, hogy egy kis kedvenc végre hazatérhessen.
+          </p>
+          <p className={`text-lg ${theme === "dark" ? "text-gray-300" : "text-[#074F57]"} mb-6 leading-relaxed`}>
+            Tarts velünk ebben a nemes célban! Ne hagyjuk, hogy egyetlen házikedvenc se veszítse el reményét, és ne hagyjuk, hogy egy gazda szíve sokáig üresen maradjon. Ha teheted, <span className={`${theme === "dark" ? "text-gray-200" : "text-[#074F57]"} font-semibold`}>töltsd ki az űrlapot, és segíts abban, hogy ezek a történetek végül boldog befejezést nyerjenek!</span>
+          </p>
         </div>
       </div>
     </div>

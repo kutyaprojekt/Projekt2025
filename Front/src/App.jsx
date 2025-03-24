@@ -1,41 +1,30 @@
-import AdminPanelPosts from "./components/Admin/AdminPanelPosts";
-import AdminPanelUsers from "./components/Admin/AdminPanelUsers";
-
-
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { UserProvider } from "./context/UserContext";
+import { ThemeProvider } from "./context/ThemeContext"; // Importáljuk a ThemeProvider-t
 import Navbar from "./components/Assets/Navbar";
-import Footer from "./components/Assets/Footer";
-
-
+import Footer from "./components/Assets/FooterComponents/Footer";
+import Home from "./components/HomePage/HomePage";
 import Login from "./components/HomePage/Login";
 import Register from "./components/HomePage/Register";
-import Home from "./components/HomePage/HomePage";
-import LostAnimals from "./components/HomePage/LostAnimals";
-
-
-import MyProfile from "./components/LoggedUser/MyProfile";
-
-
-import RegisterThePetIFound from "./components/Animals/RegisterThePetIFound";
 import RegisterMyLostPet from "./components/Animals/RegisterMyLostPet";
-import FoundAnimals from "./components/Animals/FoundAnimals"
-
-
+import RegisterThePetIFound from "./components/Animals/RegisterThePetIFound";
+import LostAnimals from "./components/Animals/LostAnimals";
+import FoundAnimals from "./components/Animals/FoundAnimals";
+import MyProfile from "./components/LoggedUser/Profile/MyProfile";
+import AdminPanelPosts from "./components/Admin/AdminPanelPosts"; 
+import AdminPanelUsers from "./components/Admin/AdminPanelUsers";
+import UserPosts from "./components/LoggedUser/Profile/UserPosts";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import UserList from "./components/UserList";
-import UserPosts from "./components/LoggedUser/UserPosts";
+import AboutUs from "./components/Assets/FooterComponents/AboutUs";
+import HowItWorks from "./components/Assets/FooterComponents/HowItWorks";
+import GYIK from "./components/Assets/FooterComponents/GYIK";
+import ContactUs from "./components/Assets/FooterComponents/ContactUs";
+import UserMessages from "./components/LoggedUser/Profile/UserMessages";
 
 
-;
-
-
-
-
-
-
-
-
-import { UserProvider } from "./context/UserContext";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { ToastContainer, toast } from 'react-toastify';
 // http://localhost:8000/felhasznalok/regisztracio
 // http://localhost:8000/felhasznalok/login
 // http://localhost:8000/felhasznalok/alluser
@@ -43,6 +32,7 @@ import { ToastContainer, toast } from 'react-toastify';
 function App() {
   return (
     <>
+    <ThemeProvider>
       <UserProvider>
         <Router>
           <Navbar />
@@ -59,12 +49,19 @@ function App() {
             <Route path={"/adminusers"} element={<AdminPanelUsers />} />  
             <Route path={"/adminposts"} element={<AdminPanelPosts />} />         
             <Route path={"/megtalaltallatok"} element={<FoundAnimals />} /> 
-            <Route path={"/posztjaim"} element={<UserPosts />} />               
+            <Route path={"/posztjaim"} element={<UserPosts />} />
+            <Route path={"/aboutus"} element={<AboutUs />} />
+            <Route path={"/howitworks"} element={<HowItWorks />} />
+            <Route path={"/gyik"} element={<GYIK />} /> 
+            <Route path={"/contactus"} element={<ContactUs />} />
+            <Route path={"/uzenetek"} element={<UserMessages />} />
+            
           </Routes>
           <Footer />
         </Router>
         <ToastContainer />
       </UserProvider>
+      </ThemeProvider>
     </>
   );
 }

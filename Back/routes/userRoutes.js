@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const {protect} = require('../mwares/authMiddleware');
+
 const multer = require("multer");
+const {sendMessage, getMessages} = require('../controllers/userController');
 const {
     register,
     login,
@@ -19,7 +21,10 @@ const {
     megtalalltallatok,
     userposts, //
     osszeselveszett,
-    editmyprofile
+    editmyprofile,
+    updatePassword
+    
+    
 } = require('../controllers/userController');
 
 
@@ -50,13 +55,20 @@ router.get("/adminusers", protect, osszesAdat )
 router.get("/adminposts", osszesAdat )
 router.get("/felhasznalok/:id", protect, getUserById);
 router.get("/allatok/:id", getAnimalById);
-router.get("/megtalaltallatok", megtalalltallatok);
+router.get("/megtalaltallatok", megtalalltallatok); 
 router.get("/posztjaim", protect, userposts );
 router.get("/profilom", protect, getMe, editmyprofile);
 
-router.patch("/felhasznalok/:id", updateUser);
+router.patch("/:id", updateUser);
+router.post("/:id/update-password", updatePassword);
 
 router.delete("/felhasznalok/:id", deleteUser);
 router.delete("/allatok/:id", deleteAnimal);
+
+
+router.post("/send-message", protect, sendMessage);
+router.get("/get-messages", protect, getMessages);
+
+
 
 module.exports = router
