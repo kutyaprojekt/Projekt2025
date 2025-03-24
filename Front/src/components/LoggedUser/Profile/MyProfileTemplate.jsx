@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { FaEye, FaEyeSlash, FaUser, FaEnvelope, FaLock, FaCamera, FaTrash, FaSave } from 'react-icons/fa';
 import UserContext from '../../../context/UserContext';
 import { useTheme } from "../../../context/ThemeContext";
+import { Link } from "react-router";
 
 const MyProfileTemplate = ({ user }) => {
     const { refresh, SetRefresh } = useContext(UserContext);
@@ -155,242 +156,291 @@ const MyProfileTemplate = ({ user }) => {
     };
 
     return (
-        <div className={`min-h-screen flex flex-col ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gradient-to-r from-[#64B6FF] to-[#A7D8FF] text-[#073F48]'}`}>
-            {/* Navbar (külön komponensben van, így nem kell itt módosítani) */}
-    
-            {/* Fő tartalom */}
-            <main className="flex-1 flex flex-col md:flex-row gap-8 px-4 md:px-8 lg:px-16 pt-20 pb-20"> {/* Padding bottom hozzáadva */}
+        <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-[#F0F4F8]'}`}>
+            <div className="container mx-auto px-4 pt-24 pb-12 flex flex-col md:flex-row gap-8">
                 {/* Oldalsó menü */}
-                <aside className="w-full md:w-1/4 lg:w-1/5">
-                    <div className={`sticky top-20 flex flex-col gap-3 p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-[#1A73E8]'} border`}>
-                        <h2 className={`text-2xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-[#073F48]'}`}>Beállítások</h2>
+                <div className={`w-full md:w-72 lg:w-80 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-md p-6 md:sticky md:top-24 md:h-fit`}>
+                    <h2 className={`text-xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-[#073F48]'}`}>Fiókbeállítások</h2>
+                    <nav className="space-y-3">
                         <button
                             onClick={() => setActiveTab('profilom')}
-                            className={`flex items-center px-4 py-3 rounded-lg transition-all ${activeTab === 'profilom'
-                                    ? `${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-[#1A73E8] text-white'}`
-                                    : `${theme === 'dark' ? 'hover:bg-gray-700 hover:text-white' : 'hover:bg-[#1A73E8] hover:text-white'}`
-                                }`}
+                            className={`w-full text-left flex items-center px-4 py-3 rounded-lg transition-colors ${
+                                activeTab === 'profilom'
+                                    ? theme === 'dark' 
+                                        ? 'bg-gray-700 text-white' 
+                                        : 'bg-[#1A73E8] text-white'
+                                    : theme === 'dark' 
+                                        ? 'hover:bg-gray-700' 
+                                        : 'hover:bg-gray-100'
+                            }`}
                         >
-                            <FaUser className="mr-3" /> Profilom
+                            <FaUser className="mr-3 text-lg" />
+                            <span className="font-medium">Profilom</span>
                         </button>
-                        <button
-                            onClick={() => setActiveTab('posztjaim')}
-                            className={`flex items-center px-4 py-3 rounded-lg transition-all ${activeTab === 'posztjaim'
-                                    ? `${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-[#1A73E8] text-white'}`
-                                    : `${theme === 'dark' ? 'hover:bg-gray-700 hover:text-white' : 'hover:bg-[#1A73E8] hover:text-white'}`
-                                }`}
+                        
+                        <Link
+                            to="/posztjaim"
+                            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                                activeTab === 'posztjaim'
+                                    ? theme === 'dark' 
+                                        ? 'bg-gray-700 text-white' 
+                                        : 'bg-[#1A73E8] text-white'
+                                    : theme === 'dark' 
+                                        ? 'hover:bg-gray-700' 
+                                        : 'hover:bg-gray-100'
+                            }`}
                         >
-                            <FaEnvelope className="mr-3" /> Posztjaim
-                        </button>
+                            <FaEnvelope className="mr-3 text-lg" />
+                            <span className="font-medium">Posztjaim</span>
+                        </Link>
+    
                         <button
                             onClick={() => setActiveTab('uzenetek')}
-                            className={`flex items-center px-4 py-3 rounded-lg transition-all ${activeTab === 'uzenetek'
-                                    ? `${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-[#1A73E8] text-white'}`
-                                    : `${theme === 'dark' ? 'hover:bg-gray-700 hover:text-white' : 'hover:bg-[#1A73E8] hover:text-white'}`
-                                }`}
+                            className={`w-full text-left flex items-center px-4 py-3 rounded-lg transition-colors ${
+                                activeTab === 'uzenetek'
+                                    ? theme === 'dark' 
+                                        ? 'bg-gray-700 text-white' 
+                                        : 'bg-[#1A73E8] text-white'
+                                    : theme === 'dark' 
+                                        ? 'hover:bg-gray-700' 
+                                        : 'hover:bg-gray-100'
+                            }`}
                         >
-                            <FaLock className="mr-3" /> Üzenetek
+                            <FaLock className="mr-3 text-lg" />
+                            <span className="font-medium">Üzenetek</span>
                         </button>
-                    </div>
-                </aside>
+                    </nav>
+                </div>
     
                 {/* Fő tartalom */}
-                <div className="w-full md:w-3/4 lg:w-4/5">
-                    <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} p-8 rounded-lg shadow-lg`}>
-                        <div className="flex items-center justify-between mb-8">
-                            <h2 className={`text-3xl font-bold flex items-center ${theme === 'dark' ? 'text-white' : 'text-[#073F48]'}`}>
-                                <FaUser className="w-8 h-8 mr-2 text-[#1A73E8]" />
-                                Publikus profil
-                            </h2>
+                <div className={`flex-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-8`}>
+                    <div className="flex items-center justify-between mb-10">
+                        <h2 className={`text-2xl font-bold flex items-center ${theme === 'dark' ? 'text-white' : 'text-[#073F48]'}`}>
+                            <FaUser className="w-6 h-6 mr-3 text-[#1A73E8]" />
+                            Profiladatok
+                        </h2>
+                    </div>
+    
+                    {/* Profilkép és gombok */}
+                    <div className="flex flex-col items-center space-y-5 mb-10">
+                        <div className="relative group">
+                            <img
+                                src={
+                                    uploadedFile
+                                        ? URL.createObjectURL(uploadedFile)
+                                        : profilePicture
+                                            ? `http://localhost:8000/${profilePicture.replace(/\\/g, '/')}?${Date.now()}`
+                                            : defaultProfilePicture
+                                }
+                                alt="Profilkép"
+                                className="w-36 h-36 rounded-full object-cover border-4 border-[#1A73E8] shadow-lg"
+                            />
+                            <label
+                                htmlFor="profile-picture-upload"
+                                className={`absolute bottom-2 right-2 p-3 rounded-full cursor-pointer transition-all ${
+                                    theme === 'dark' 
+                                        ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                                        : 'bg-white hover:bg-gray-100 text-[#1A73E8]'
+                                } shadow-md`}
+                            >
+                                <FaCamera className="w-5 h-5" />
+                            </label>
+                            <input
+                                type="file"
+                                onChange={handleProfilePictureUpload}
+                                className="hidden"
+                                id="profile-picture-upload"
+                            />
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleDeleteProfilePicture}
+                            className={`flex items-center px-5 py-2.5 rounded-lg font-medium transition-colors ${
+                                theme === 'dark' 
+                                    ? 'text-red-400 bg-red-900/20 hover:bg-red-900/30' 
+                                    : 'text-red-600 bg-red-100 hover:bg-red-200'
+                            }`}
+                        >
+                            <FaTrash className="w-4 h-4 mr-2" />
+                            Profilkép törlése
+                        </button>
+                    </div>
+    
+                    {/* Szerkesztési űrlap */}
+                    <div className="space-y-8">
+                        {/* Felhasználónév */}
+                        <div>
+                            <label htmlFor="name" className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                Felhasználónév
+                            </label>
+                            <div className="flex gap-3">
+                                <input
+                                    type="text"
+                                    id="name"
+                                    className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:outline-none ${
+                                        theme === 'dark' 
+                                            ? 'border-gray-600 bg-gray-700 text-white focus:ring-[#1A73E8] focus:border-[#1A73E8]' 
+                                            : 'border-gray-300 bg-white text-[#073F48] focus:ring-[#1A73E8] focus:border-[#1A73E8]'
+                                    }`}
+                                    value={isEditingName ? newName : name}
+                                    onChange={(e) => setNewName(e.target.value)}
+                                    disabled={!isEditingName}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditingName(!isEditingName)}
+                                    className={`px-5 py-3 rounded-lg font-medium transition-colors ${
+                                        theme === 'dark' 
+                                            ? 'bg-[#1A73E8] hover:bg-[#1557B0] text-white' 
+                                            : 'bg-[#1A73E8] hover:bg-[#1557B0] text-white'
+                                    }`}
+                                >
+                                    {isEditingName ? 'Mégse' : 'Szerkesztés'}
+                                </button>
+                            </div>
                         </div>
     
-                        {/* Profilkép és gombok */}
-                        <div className="flex flex-col items-center space-y-6">
-                            <div className="relative">
-                                <img
-                                    src={
-                                        uploadedFile
-                                            ? URL.createObjectURL(uploadedFile)
-                                            : profilePicture
-                                                ? `http://localhost:8000/${profilePicture.replace(/\\/g, '/')}?${Date.now()}`
-                                                : defaultProfilePicture
-                                    }
-                                    alt="Profilkép"
-                                    className="w-32 h-32 rounded-full object-cover border-4 border-[#1A73E8] shadow-lg"
-                                />
-                                <label
-                                    htmlFor="profile-picture-upload"
-                                    className="absolute bottom-0 right-0 bg-[#1A73E8] p-2 rounded-full cursor-pointer shadow-md hover:bg-[#1557B0] transition-colors"
-                                >
-                                    <FaCamera className="w-6 h-6 text-white" />
-                                </label>
+                        {/* Email cím */}
+                        <div>
+                            <label htmlFor="email" className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                Email cím
+                            </label>
+                            <div className="flex gap-3">
                                 <input
-                                    type="file"
-                                    onChange={handleProfilePictureUpload}
-                                    className="hidden"
-                                    id="profile-picture-upload"
+                                    type="email"
+                                    id="email"
+                                    className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:outline-none ${
+                                        theme === 'dark' 
+                                            ? 'border-gray-600 bg-gray-700 text-white focus:ring-[#1A73E8] focus:border-[#1A73E8]' 
+                                            : 'border-gray-300 bg-white text-[#073F48] focus:ring-[#1A73E8] focus:border-[#1A73E8]'
+                                    }`}
+                                    value={isEditingEmail ? newEmail : email}
+                                    onChange={(e) => setNewEmail(e.target.value)}
+                                    disabled={!isEditingEmail}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditingEmail(!isEditingEmail)}
+                                    className={`px-5 py-3 rounded-lg font-medium transition-colors ${
+                                        theme === 'dark' 
+                                            ? 'bg-[#1A73E8] hover:bg-[#1557B0] text-white' 
+                                            : 'bg-[#1A73E8] hover:bg-[#1557B0] text-white'
+                                    }`}
+                                >
+                                    {isEditingEmail ? 'Mégse' : 'Szerkesztés'}
+                                </button>
                             </div>
+                        </div>
+    
+                        {/* Jelszó módosítás */}
+                        <div className="pt-4">
                             <button
                                 type="button"
-                                onClick={handleDeleteProfilePicture}
-                                className="flex items-center px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                                onClick={() => setIsEditingPassword(!isEditingPassword)}
+                                className={`w-full px-5 py-3.5 rounded-lg font-medium transition-colors ${
+                                    theme === 'dark' 
+                                        ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                                        : 'bg-gray-100 hover:bg-gray-200 text-[#073F48]'
+                                }`}
                             >
-                                <FaTrash className="w-5 h-5 mr-2" />
-                                Kép törlése
+                                {isEditingPassword ? 'Jelszóváltoztatás bezárása' : 'Jelszó módosítása'}
                             </button>
-                        </div>
     
-                        {/* Név és email mezők */}
-                        <div className="mt-8 space-y-6">
-                            {/* Felhasználónév módosítása */}
-                            <div className="space-y-2">
-                                <label htmlFor="name" className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-[#073F48]'}`}>
-                                    Felhasználónév
-                                </label>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="text"
-                                        id="name"
-                                        className={`flex-1 p-2 border ${theme === 'dark' ? 'border-gray-700 bg-gray-700 text-white' : 'border-[#1A73E8] bg-white text-[#073F48]'
-                                            } rounded-lg focus:ring-[#1A73E8] focus:border-[#1A73E8]`}
-                                        placeholder="Felhasználónév"
-                                        value={isEditingName ? newName : name}
-                                        onChange={(e) => setNewName(e.target.value)}
-                                        disabled={!isEditingName}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsEditingName(!isEditingName)}
-                                        className={`p-2 text-sm font-medium ${theme === 'dark' ? 'text-white bg-gray-700 hover:bg-gray-600' : 'text-white bg-[#1A73E8] hover:bg-[#1557B0]'
-                                            } rounded-lg transition-colors`}
-                                    >
-                                        {isEditingName ? 'Mégse' : 'Módosítás'}
-                                    </button>
-                                </div>
-                            </div>
-    
-                            {/* Email cím módosítása */}
-                            <div className="space-y-2">
-                                <label htmlFor="email" className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-[#073F48]'}`}>
-                                    Email cím
-                                </label>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        className={`flex-1 p-2 border ${theme === 'dark' ? 'border-gray-700 bg-gray-700 text-white' : 'border-[#1A73E8] bg-white text-[#073F48]'
-                                            } rounded-lg focus:ring-[#1A73E8] focus:border-[#1A73E8]`}
-                                        placeholder="email@example.com"
-                                        value={isEditingEmail ? newEmail : email}
-                                        onChange={(e) => setNewEmail(e.target.value)}
-                                        disabled={!isEditingEmail}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsEditingEmail(!isEditingEmail)}
-                                        className={`p-2 text-sm font-medium ${theme === 'dark' ? 'text-white bg-gray-700 hover:bg-gray-600' : 'text-white bg-[#1A73E8] hover:bg-[#1557B0]'
-                                            } rounded-lg transition-colors`}
-                                    >
-                                        {isEditingEmail ? 'Mégse' : 'Módosítás'}
-                                    </button>
-                                </div>
-                            </div>
-    
-                            {/* Jelszó módosítása */}
                             {isEditingPassword && (
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <label htmlFor="oldPassword" className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-[#073F48]'}`}>
+                                <div className="mt-6 space-y-6 p-6 rounded-lg bg-opacity-50 ${
+                                    theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+                                }">
+                                    <div>
+                                        <label htmlFor="oldPassword" className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                                             Régi jelszó
-                                        </label>
-                                        <input
-                                            type={showPassword ? "text" : "password"}
-                                            id="oldPassword"
-                                            className={`w-full p-2 border ${theme === 'dark' ? 'border-gray-700 bg-gray-700 text-white' : 'border-[#1A73E8] bg-white text-[#073F48]'
-                                                } rounded-lg focus:ring-[#1A73E8] focus:border-[#1A73E8]`}
-                                            placeholder="Régi jelszó"
-                                            value={oldPassword}
-                                            onChange={(e) => setOldPassword(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label htmlFor="newPassword" className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-[#073F48]'}`}>
-                                            Új jelszó
                                         </label>
                                         <div className="relative">
                                             <input
                                                 type={showPassword ? "text" : "password"}
-                                                id="newPassword"
-                                                className={`w-full p-2 border ${theme === 'dark' ? 'border-gray-700 bg-gray-700 text-white' : 'border-[#1A73E8] bg-white text-[#073F48]'
-                                                    } rounded-lg focus:ring-[#1A73E8] focus:border-[#1A73E8]`}
-                                                placeholder="Új jelszó"
-                                                value={newPassword}
-                                                onChange={(e) => setNewPassword(e.target.value)}
+                                                id="oldPassword"
+                                                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:outline-none ${
+                                                    theme === 'dark' 
+                                                        ? 'border-gray-600 bg-gray-700 text-white focus:ring-[#1A73E8] focus:border-[#1A73E8]' 
+                                                        : 'border-gray-300 bg-white text-[#073F48] focus:ring-[#1A73E8] focus:border-[#1A73E8]'
+                                                }`}
+                                                value={oldPassword}
+                                                onChange={(e) => setOldPassword(e.target.value)}
                                             />
                                             <button
                                                 type="button"
                                                 onClick={togglePasswordVisibility}
-                                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
+                                                className={`absolute right-3 top-3.5 ${
+                                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                                                }`}
                                             >
                                                 {showPassword ? <FaEyeSlash /> : <FaEye />}
                                             </button>
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label htmlFor="confirmPassword" className={`block text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-[#073F48]'}`}>
+    
+                                    <div>
+                                        <label htmlFor="newPassword" className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                            Új jelszó
+                                        </label>
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            id="newPassword"
+                                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:outline-none ${
+                                                theme === 'dark' 
+                                                    ? 'border-gray-600 bg-gray-700 text-white focus:ring-[#1A73E8] focus:border-[#1A73E8]' 
+                                                    : 'border-gray-300 bg-white text-[#073F48] focus:ring-[#1A73E8] focus:border-[#1A73E8]'
+                                            }`}
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                        />
+                                    </div>
+    
+                                    <div>
+                                        <label htmlFor="confirmPassword" className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                                             Új jelszó megerősítése
                                         </label>
                                         <input
                                             type={showPassword ? "text" : "password"}
                                             id="confirmPassword"
-                                            className={`w-full p-2 border ${theme === 'dark' ? 'border-gray-700 bg-gray-700 text-white' : 'border-[#1A73E8] bg-white text-[#073F48]'
-                                                } rounded-lg focus:ring-[#1A73E8] focus:border-[#1A73E8]`}
-                                            placeholder="Új jelszó megerősítése"
+                                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:outline-none ${
+                                                theme === 'dark' 
+                                                    ? 'border-gray-600 bg-gray-700 text-white focus:ring-[#1A73E8] focus:border-[#1A73E8]' 
+                                                    : 'border-gray-300 bg-white text-[#073F48] focus:ring-[#1A73E8] focus:border-[#1A73E8]'
+                                            }`}
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
                                         />
                                     </div>
+    
                                     {passwordError && (
-                                        <p className="text-red-500 text-sm">{passwordError}</p>
+                                        <p className="text-red-500 text-sm mt-2">{passwordError}</p>
                                     )}
+    
                                     <button
                                         type="button"
                                         onClick={handlePasswordChange}
-                                        className={`w-full p-2 text-sm font-medium text-white bg-[#1A73E8] rounded-lg hover:bg-[#1557B0] transition-colors`}
+                                        className={`w-full px-5 py-3.5 rounded-lg font-medium text-white bg-[#1A73E8] hover:bg-[#1557B0] transition-colors mt-4`}
                                     >
-                                        Jelszó módosítása
+                                        Jelszó frissítése
                                     </button>
                                 </div>
                             )}
+                        </div>
     
-                            {/* Jelszó módosítás gomb */}
+                        {/* Mentés gomb */}
+                        <div className="flex justify-end pt-6">
                             <button
                                 type="button"
-                                onClick={() => setIsEditingPassword(!isEditingPassword)}
-                                className={`w-full p-2 text-sm font-medium ${theme === 'dark' ? 'text-white bg-gray-700 hover:bg-gray-600' : 'text-white bg-[#1A73E8] hover:bg-[#1557B0]'
-                                    } rounded-lg transition-colors`}
+                                onClick={handleUpdateProfile}
+                                className={`px-8 py-3.5 rounded-lg font-medium text-white bg-[#1A73E8] hover:bg-[#1557B0] transition-colors flex items-center`}
                             >
-                                {isEditingPassword ? 'Mégse' : 'Jelszó módosítása'}
+                                <FaSave className="mr-2" />
+                                Változtatások mentése
                             </button>
-    
-                            {/* Mentés gomb */}
-                            <div className="flex justify-end">
-                                <button
-                                    type="button"
-                                    onClick={handleUpdateProfile}
-                                    className={`px-6 py-2 text-sm font-medium text-white bg-[#1A73E8] rounded-lg hover:bg-[#1557B0] transition-colors`}
-                                >
-                                    <FaSave className="inline-block mr-2" />
-                                    Mentés
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
-            </main>
-    
-            {/* Footer (külön komponensben van, így nem kell itt módosítani) */}
+            </div>
         </div>
     );
 };

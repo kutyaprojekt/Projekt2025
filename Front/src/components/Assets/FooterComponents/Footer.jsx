@@ -79,7 +79,7 @@ const Footer = () => {
         {/* Copyright és További Információk */}
         <div className="text-center mt-8 border-t border-gray-700 pt-8">
           <p className="text-gray-400">© 2025 Állatkereső és -megtaláló Rendszer. Minden jog fenntartva.</p>
-          <p className="text-gray-400">Készítette: Sóki Zalán, Bodrogi Zétény, Páskuj Csaba</p>
+          <p className="text-gray-400">Készítette: Sóki Zalán, Páskuj Csaba,  Bodrogi Zétény</p>
         </div>
       </div>
     </footer>

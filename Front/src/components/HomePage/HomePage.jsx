@@ -115,7 +115,7 @@ const Home = () => {
           </p>
           <div className="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4">
             <button className={`${theme === "dark" ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-white hover:bg-gray-100 text-[#074F57]"} font-semibold py-2 px-4 md:py-3 md:px-8 rounded-full transition duration-300 shadow-lg text-sm md:text-base`}>
-              <Link to={"/elveszettallat"}>Segítség kérése</Link>
+              <Link to={"/elveszettallat"}>Elveszett Kisállatom</Link>
             </button>
             <button className={`${theme === "dark" ? "bg-transparent border-2 border-gray-700 hover:bg-gray-700" : "bg-transparent border-2 border-white hover:bg-white hover:text-[#074F57]"} text-white font-semibold py-2 px-4 md:py-3 md:px-8 rounded-full transition duration-300 shadow-lg text-sm md:text-base`}>
               <Link to={"/talaltallat"}>Állatot találtam</Link>
@@ -202,37 +202,44 @@ const Home = () => {
       </div>
 
       {/* Elveszett Állatok Galériája */}
-      <div
-        ref={galleryRef}
-        className={`${theme === "dark" ? "bg-gray-800" : "bg-[#F0EDEE]"} py-8 md:py-20 transition-opacity duration-1000 ${galleryInView ? "opacity-100" : "opacity-0"
-          }`}
+<div
+  ref={galleryRef}
+  className={`${theme === "dark" ? "bg-gray-800" : "bg-[#F0EDEE]"} py-8 md:py-20 transition-opacity duration-1000 ${galleryInView ? "opacity-100" : "opacity-0"}`}
+>
+  <div className="container mx-auto px-4">
+    <h2 className={`text-2xl md:text-4xl font-bold text-center ${theme === "dark" ? "text-white" : "text-[#073F48]"} mb-6 md:mb-16`}>Elveszett Állatok Galériája</h2>
+    <div className="flex flex-wrap justify-center gap-6">
+      {lostAnimals.length > 0 ? (
+        lostAnimals.map((animal) => (
+          <div
+            key={animal.id}
+            className="h-full" // Ez biztosítja, hogy minden kártya ugyanolyan magas legyen
+          >
+            <div className={`
+              h-full flex flex-col
+              transition-all duration-300 
+              hover:scale-105 hover:shadow-xl
+              ${theme === "dark" ? "bg-gray-700" : "bg-white"}
+              rounded-xl overflow-hidden
+            `}>
+              <LostAnimalTemplate animal={animal} />
+            </div>
+          </div>
+        ))
+      ) : (
+        <p className={`${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>Nincs adat</p>
+      )}
+    </div>
+    <div className="text-center mt-6 md:mt-12">
+      <Link
+        to="/osszallat"
+        className={`${theme === "dark" ? "bg-gray-700 hover:bg-gray-600" : "bg-[#64B6FF] hover:bg-[#88c4f8]"} text-white font-semibold py-2 px-4 md:py-3 md:px-8 rounded-full transition duration-300 shadow-lg text-sm md:text-base`}
       >
-        <div className="container mx-auto px-4 ">
-          <h2 className={`text-2xl md:text-4xl font-bold text-center ${theme === "dark" ? "text-white" : "text-[#073F48]"} mb-6 md:mb-16`}>Elveszett Állatok Galériája</h2>
-          <div className="flex flex-wrap justify-center gap-6 ">
-            {lostAnimals.length > 0 ? (
-              lostAnimals.map((animal) => (
-                <div
-                  key={animal.id}
-                  className="transition-transform duration-300 hover:scale-105 hover:shadow-2xl "
-                >
-                  <LostAnimalTemplate animal={animal} />
-                </div>
-              ))
-            ) : (
-              <p className={`${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>Nincs adat</p>
-            )}
-          </div>
-          <div className="text-center mt-6 md:mt-12">
-            <Link
-              to="/osszallat"
-              className={`${theme === "dark" ? "bg-gray-700 hover:bg-gray-600" : "bg-[#64B6FF] hover:bg-[#88c4f8]"} text-white font-semibold py-2 px-4 md:py-3 md:px-8 rounded-full transition duration-300 shadow-lg text-sm md:text-base`}
-            >
-              További elveszett állatok megtekintése
-            </Link>
-          </div>
-        </div>
-      </div>
+        További elveszett állatok megtekintése
+      </Link>
+    </div>
+  </div>
+</div>
 
       {/* CTA (Call to Action) */}
       <div
