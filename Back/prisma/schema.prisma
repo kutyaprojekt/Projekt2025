@@ -34,6 +34,8 @@ model Animal {
   helyszin         String
   filePath         String
   visszakerult_e   String
+  elutasitva       String  @default("")
+  elutasitasoka    String  @default("")
 
   userId Int
   user   User @relation("UserAnimals", fields: [userId], references: [id])
