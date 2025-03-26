@@ -9,12 +9,13 @@ const UserPosts = () => {
     const [animals, setAnimals] = useState([]);
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [isAdmin, setIsAdmin] = useState(false);
     const { theme } = useTheme();
     const token = localStorage.getItem("usertoken");
-    const [activeTab, setActiveTab] = useState('posztjaim');
+    
 
-    const loadUserData = async () => {
+    const [activeTab, setActiveTab] = useState('');
+    const [isAdmin, setIsAdmin] = useState(false);
+    const adminornot = async () => {
         try {
             // Felhasználó adatainak lekérése
             const userResponse = await fetch("http://localhost:8000/felhasznalok/me", {
@@ -24,15 +25,12 @@ const UserPosts = () => {
             });
             const userData = await userResponse.json();
             setUser(userData);
+            console.log(userData);
 
-            // Admin státusz ellenőrzése
-            const adminResponse = await fetch("http://localhost:8000/felhasznalok/isadmin", {
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                },
-            });
-            const adminStatus = await adminResponse.text();
-            setIsAdmin(admin === "true");
+            if(userData.admin == "true") {
+                setIsAdmin(true);
+            }
+
         } catch (error) {
             console.error("Hiba a felhasználó adatok lekérésekor:", error);
         }
@@ -62,7 +60,7 @@ const UserPosts = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            await loadUserData();
+            await adminornot();
             await loadAnimals();
             window.scrollTo(0, 0);
         };

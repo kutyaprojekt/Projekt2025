@@ -1,10 +1,10 @@
 import React from 'react';
 import { 
-  FaUser,         // Profilom
-  FaNewspaper,    // Posztjaim
-  FaEnvelope,     // Üzenetek
-  FaClipboardList, // Bejegyzések (admin)
-  FaUsers         // Felhasználók (admin)
+  FaUser,         
+  FaNewspaper,   
+  FaEnvelope,    
+  FaClipboardList, 
+  FaUsers         
 } from 'react-icons/fa';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from "../../../../context/ThemeContext";
@@ -19,10 +19,12 @@ const SideBarMenu = ({ isAdmin = false }) => {
         if (path.includes('/profilom')) return 'profilom';
         if (path.includes('/posztjaim')) return 'posztjaim';
         if (path.includes('/uzenetek')) return 'uzenetek';
-        if (path.includes('/admin/bejegyzesek')) return 'bejegyzesek';
-        if (path.includes('/admin/felhasznalok')) return 'felhasznalok';
+        if (path.includes('/adminposts')) return 'bejegyzesek';
+        if (path.includes('/adminusers')) return 'felhasznalok';
         return '';
     };
+
+    
 
     const currentTab = activeTab();
 
@@ -89,7 +91,7 @@ const SideBarMenu = ({ isAdmin = false }) => {
                     <nav className="space-y-3">
                         {/* Bejegyzések */}
                         <Link
-                            to="/admin/bejegyzesek"
+                            to="/adminposts"
                             className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
                                 currentTab === 'bejegyzesek'
                                     ? theme === 'dark' 
@@ -106,7 +108,7 @@ const SideBarMenu = ({ isAdmin = false }) => {
                         
                         {/* Felhasználók */}
                         <Link
-                            to="/admin/felhasználok"
+                            to="/adminusers"
                             className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
                                 currentTab === 'felhasználok'
                                     ? theme === 'dark' 

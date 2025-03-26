@@ -27,7 +27,7 @@ const MyProfile = () => {
       } catch (error) {
         console.error('Hiba történt:', error);
       } finally {
-        setLoading(false); e
+        setLoading(false);
       }
     };
 
