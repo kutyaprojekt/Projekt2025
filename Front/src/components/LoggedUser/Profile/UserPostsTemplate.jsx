@@ -1,13 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTheme } from "../../../context/ThemeContext";
-import { FaPaw } from "react-icons/fa";
+import { FaPaw, FaCalendarAlt, FaMapMarkerAlt, FaInfoCircle, FaRuler } from "react-icons/fa";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import ConfirmationModal from './ComfirmationModal'; // Új komponens a megerősítéshez
 
-const UserPostsTemplate = ({animal}) => {
+const UserPostsTemplate = ({animal, onUpdate}) => {
     const { theme } = useTheme();
+    const [isLoading, setIsLoading] = useState(false);
+    const [showConfirmation, setShowConfirmation] = useState(false); // Állapot a megerősítő ablakhoz
+
+    const updatelosttofound = async () => {
+        setIsLoading(true);
+        try {
+            const token = localStorage.getItem('usertoken');
+            const response = await fetch(`http://localhost:8000/felhasznalok/losttofound/${animal.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || "Hiba történt a frissítés során");
+            }
+
+            toast.success("Állat sikeresen megjelölve megtaláltként!");
+            if (onUpdate) {
+                onUpdate();
+            }
+        } catch (error) {
+            toast.error(error.message);
+        } finally {
+            setIsLoading(false);
+            setShowConfirmation(false); // Bezárjuk a megerősítő ablakot
+        }
+    };
+
+    const handleConfirm = () => {
+        setShowConfirmation(true); // Megjelenítjük a megerősítő ablakot
+    };
 
     return (
         <div className={`h-full flex flex-col ${theme === "dark" ? "bg-gray-800" : "bg-white"} rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl`}>
-            {/* Kép rész - fix magasság */}
+            {/* Kép rész */}
             <div className="h-48 w-full overflow-hidden relative">
                 {animal.filePath ? (
                     <img 
@@ -34,11 +73,11 @@ const UserPostsTemplate = ({animal}) => {
                         <p className={`text-sm ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}>{animal.allatfaj}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        animal.visszakerult_e === "igen" 
+                        animal.visszakerult_e === "true" 
                             ? "bg-green-100 text-green-800" 
                             : "bg-blue-100 text-blue-800"
                     }`}>
-                        {animal.visszakerult_e === "igen" ? "Megtalálva" : "Keresés alatt"}
+                        {animal.visszakerult_e === "true" ? "Megtalálva" : "Keresés alatt"}
                     </span>
                 </div>
 
@@ -62,19 +101,44 @@ const UserPostsTemplate = ({animal}) => {
                     )}
                 </div>
 
-                {animal.visszakerult_e !== "igen" && (
+                {/* Gombok */}
+                <div className="flex flex-col gap-2 mt-4">
+                    {animal.visszakerult_e !== "true" && (
+                        <button 
+                            onClick={handleConfirm} // Most már a megerősítést kérjük
+                            disabled={isLoading}
+                            className={`w-full py-2 px-4 rounded-lg font-medium ${
+                                theme === "dark" 
+                                    ? "bg-green-600 hover:bg-green-700 text-white" 
+                                    : "bg-green-500 hover:bg-green-600 text-white"
+                            } transition duration-300 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                            {isLoading ? 'Feldolgozás...' : 'Megjelölés megtaláltként'}
+                        </button>
+                    )}
                     <button 
-                        className={`mt-auto w-full py-2 px-4 rounded-lg font-medium ${
+                        className={`w-full py-2 px-4 rounded-lg font-medium ${
                             theme === "dark" 
-                                ? "bg-green-600 hover:bg-green-700 text-white" 
-                                : "bg-green-500 hover:bg-green-600 text-white"
+                                ? "bg-blue-600 hover:bg-blue-700 text-white" 
+                                : "bg-blue-500 hover:bg-blue-600 text-white"
                         } transition duration-300`}
-                        disabled // Jelenleg csak vizuális, nincs funkció hozzá
                     >
-                        Megjelölés megtaláltként
+                        Szerkesztés
                     </button>
-                )}
+                </div>
             </div>
+            <ToastContainer />
+
+            {/* Megerősítő ablak */}
+            {showConfirmation && (
+                <ConfirmationModal
+                    title="Biztos, hogy megtaláltad?"
+                    message={`Valóban megtaláltad ${animal.nev} nevű állatodat? Ez a művelet nem vonható vissza.`}
+                    onConfirm={updatelosttofound}
+                    onCancel={() => setShowConfirmation(false)}
+                    theme={theme}
+                />
+            )}
         </div>
     );
 };

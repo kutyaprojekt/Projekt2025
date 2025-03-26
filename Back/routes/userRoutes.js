@@ -22,7 +22,8 @@ const {
     userposts, //
     osszeselveszett,
     editmyprofile,
-    updatePassword
+    updatePassword,
+    updatelosttofound, 
     
     
 } = require('../controllers/userController');
@@ -56,18 +57,17 @@ router.get("/adminposts", osszesAdat )
 router.get("/felhasznalok/:id", protect, getUserById);
 router.get("/allatok/:id", getAnimalById);
 router.get("/megtalaltallatok", megtalalltallatok); 
-router.get("/posztjaim", protect, userposts );
+router.get("/posztjaim", protect, userposts, getMe);
 router.get("/profilom", protect, getMe, editmyprofile);
 
 router.patch("/:id", updateUser);
-router.post("/:id/update-password", updatePassword);
+router.patch("/:id/update-password", updatePassword);
+router.patch('/losttofound/:id', protect, updatelosttofound);
 
 router.delete("/felhasznalok/:id", deleteUser);
 router.delete("/allatok/:id", deleteAnimal);
 
 
-router.post("/send-message", protect, sendMessage);
-router.get("/get-messages", protect, getMessages);
 
 
 

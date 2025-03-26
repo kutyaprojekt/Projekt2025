@@ -494,7 +494,6 @@ const megtalalltallatok = async (req, res) => {
 };
 
 const userposts = async (req, res) => {
-    console.log("Bejelentkezett felhasználó:", req.user); // Ellenőrizd a konzolon
 
     try {
         const animals = await prisma.animal.findMany({
@@ -509,6 +508,43 @@ const userposts = async (req, res) => {
     } catch (error) {
         console.error("Hiba történt a posztok lekérése során:", error);
         res.status(500).json({ error: "Hiba történt a posztok lekérése során" });
+    }
+};
+
+const updatelosttofound = async (req, res) => {
+    const animalId = parseInt(req.params.id, 10);
+    const userId = req.user.id;
+
+    try {
+        // 1. Állat keresése
+        const animal = await prisma.animal.findUnique({
+            where: { id: animalId },
+        });
+
+        if (!animal) {
+            return res.status(404).json({ error: "Állat nem található!" });
+        }
+
+        // 2. Jogosultság ellenőrzése
+        if (animal.userId !== userId) {
+            return res.status(403).json({ error: "Csak a saját állataidat jelölheted meg megtaláltként!" });
+        }
+
+        // 3. Állat státuszának frissítése
+        const updatedAnimal = await prisma.animal.update({
+            where: { id: animalId },
+            data: {
+                visszakerult_e: "true",
+            },
+        });
+
+        res.json({
+            message: "Állat sikeresen megjelölve megtaláltként!",
+            animal: updatedAnimal,
+        });
+    } catch (error) {
+        console.error("Hiba történt az állat frissítése során:", error);
+        res.status(500).json({ error: "Hiba történt az állat frissítése során" });
     }
 };
 
@@ -633,6 +669,7 @@ module.exports = {
     editmyprofile,
     sendMessage,
     getMessages,
-    updatePassword
+    updatePassword,
+    updatelosttofound,
 
 };

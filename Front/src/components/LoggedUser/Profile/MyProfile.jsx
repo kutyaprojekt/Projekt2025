@@ -23,11 +23,11 @@ const MyProfile = () => {
         }
 
         const data = await response.json();
-        setUser(data); // Adatok beállítása
+        setUser(data); 
       } catch (error) {
         console.error('Hiba történt:', error);
       } finally {
-        setLoading(false); // Betöltés befejezése
+        setLoading(false); e
       }
     };
 
@@ -35,7 +35,7 @@ const MyProfile = () => {
   }, [token]);
 
   if (loading) {
-    return <div>Betöltés...</div>; // Betöltés közbeni állapot
+    return <div>Betöltés...</div>; 
   }
 
   if (!user) {

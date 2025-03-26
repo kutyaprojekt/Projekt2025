@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { FaEye, FaEyeSlash, FaUser, FaEnvelope, FaLock, FaCamera, FaTrash, FaSave } from 'react-icons/fa';
 import UserContext from '../../../context/UserContext';
 import { useTheme } from "../../../context/ThemeContext";
+import SideBarMenu from './SidebarMenu/SideBarMenu';
 import { Link } from "react-router";
 
 const MyProfileTemplate = ({ user }) => {
@@ -23,6 +24,7 @@ const MyProfileTemplate = ({ user }) => {
     const [uploadedFile, setUploadedFile] = useState(null);
     const token = localStorage.getItem("usertoken");
     const [activeTab, setActiveTab] = useState('profilom');
+    const [isAdmin] = useState(user.admin === "true"); // Vagy valamilyen más admin ellenőrzés
 
     const defaultProfilePicture = '/default-profile.jpg';
 
@@ -158,60 +160,13 @@ const MyProfileTemplate = ({ user }) => {
     return (
         <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-[#F0F4F8]'}`}>
             <div className="container mx-auto px-4 pt-24 pb-12 flex flex-col md:flex-row gap-8">
-                {/* Oldalsó menü */}
-                <div className={`w-full md:w-72 lg:w-80 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-md p-6 md:sticky md:top-24 md:h-fit`}>
-                    <h2 className={`text-xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-[#073F48]'}`}>Fiókbeállítások</h2>
-                    <nav className="space-y-3">
-                        <button
-                            onClick={() => setActiveTab('profilom')}
-                            className={`w-full text-left flex items-center px-4 py-3 rounded-lg transition-colors ${
-                                activeTab === 'profilom'
-                                    ? theme === 'dark' 
-                                        ? 'bg-gray-700 text-white' 
-                                        : 'bg-[#1A73E8] text-white'
-                                    : theme === 'dark' 
-                                        ? 'hover:bg-gray-700' 
-                                        : 'hover:bg-gray-100'
-                            }`}
-                        >
-                            <FaUser className="mr-3 text-lg" />
-                            <span className="font-medium">Profilom</span>
-                        </button>
-                        
-                        <Link
-                            to="/posztjaim"
-                            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-                                activeTab === 'posztjaim'
-                                    ? theme === 'dark' 
-                                        ? 'bg-gray-700 text-white' 
-                                        : 'bg-[#1A73E8] text-white'
-                                    : theme === 'dark' 
-                                        ? 'hover:bg-gray-700' 
-                                        : 'hover:bg-gray-100'
-                            }`}
-                        >
-                            <FaEnvelope className="mr-3 text-lg" />
-                            <span className="font-medium">Posztjaim</span>
-                        </Link>
-    
-                        <button
-                            onClick={() => setActiveTab('uzenetek')}
-                            className={`w-full text-left flex items-center px-4 py-3 rounded-lg transition-colors ${
-                                activeTab === 'uzenetek'
-                                    ? theme === 'dark' 
-                                        ? 'bg-gray-700 text-white' 
-                                        : 'bg-[#1A73E8] text-white'
-                                    : theme === 'dark' 
-                                        ? 'hover:bg-gray-700' 
-                                        : 'hover:bg-gray-100'
-                            }`}
-                        >
-                            <FaLock className="mr-3 text-lg" />
-                            <span className="font-medium">Üzenetek</span>
-                        </button>
-                    </nav>
-                </div>
-    
+                                {/* Oldalsó menü - most már külön komponens */}
+                    <SideBarMenu 
+                        activeTab={activeTab} 
+                        setActiveTab={setActiveTab} 
+                        isAdmin={isAdmin} 
+                    />
+
                 {/* Fő tartalom */}
                 <div className={`flex-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-8`}>
                     <div className="flex items-center justify-between mb-10">
