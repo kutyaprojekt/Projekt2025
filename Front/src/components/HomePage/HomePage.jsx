@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "../../context/ThemeContext";
-import LostAnimalTemplate from "../Animals/LostAnimalTemplate";
-import { useInView } from "react-intersection-observer"; // Importáljuk a hookot
+import LostAnimalTemplate from "./LostAnimalTemplate";
+import { useInView } from "react-intersection-observer";
 
 const Home = () => {
+  const [happyStories, setHappyStories] = useState([]);
   const [lostAnimals, setLostAnimals] = useState([]);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const { theme } = useTheme();
@@ -12,31 +13,14 @@ const Home = () => {
   // Intersection Observer hookok
   const { ref: heroRef, inView: heroInView } = useInView({ triggerOnce: true, threshold: 0.1 });
   const { ref: storiesRef, inView: storiesInView } = useInView({ triggerOnce: true, threshold: 0.1 });
-  const { ref: galleryRef, inView: galleryInView } = useInView({ triggerOnce: true, threshold: 0.1 });
+  const { ref: lostAnimalsRef, inView: lostAnimalsInView } = useInView({ triggerOnce: true, threshold: 0.1 });
   const { ref: ctaRef, inView: ctaInView } = useInView({ triggerOnce: true, threshold: 0.1 });
 
-  const stories = [
-    {
-      image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      title: "Rebecca és a macskája",
-      description: "Köszönöm a rendszernek, hogy segített megtalálni a macskám! Nem tudom, mit tettem volna nélkületek.",
-    },
-    {
-      image: "https://images.unsplash.com/photo-1583512603805-3cc6b41f3edb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      title: "Michael és a kutyája",
-      description: "A kutyám nélkül elveszettnek éreztem volna magam. Köszönöm, hogy újra együtt lehettünk!",
-    },
-    {
-      image: "https://images.unsplash.com/photo-1583511655826-05700d52f4d9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-      title: "Sarah és a nyúla",
-      description: "A nyúlam nélkül nem lett volna teljes az otthonunk. Köszönöm, hogy segítettetek megtalálni!",
-    },
-  ];
-
+  // Elveszett állatok lekérése
   useEffect(() => {
     const fetchLostAnimals = async () => {
       try {
-        const response = await fetch("http://localhost:8000/felhasznalok/osszallat", {
+        const response = await fetch("http://localhost:8000/felhasznalok/osszeselveszett", {
           method: 'GET',
           headers: {
             "Content-type": "application/json",
@@ -44,32 +28,58 @@ const Home = () => {
         });
 
         if (!response.ok) {
-          throw new Error("Hiba történt az adatok lekérése során");
+          throw new Error("Hiba történt az elveszett állatok lekérése során");
         }
 
         const data = await response.json();
-        const latestLostAnimals = data.slice(0, 3); // Csak a legfrissebb 3 elveszett állatot mentjük
-        setLostAnimals(latestLostAnimals);
+        setLostAnimals(data);
       } catch (error) {
-        console.error("Hiba történt az állatok lekérése során:", error);
+        console.error("Hiba történt az elveszett állatok lekérése során:", error);
       }
     };
 
     fetchLostAnimals();
   }, []);
 
+  // Boldog történetek lekérése
+  useEffect(() => {
+    const fetchHappyStories = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/felhasznalok/happy-stories", {
+          method: 'GET',
+          headers: {
+            "Content-type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Hiba történt a boldog történetek lekérése során");
+        }
+
+        const data = await response.json();
+        setHappyStories(data);
+      } catch (error) {
+        console.error("Hiba történt a boldog történetek lekérése során:", error);
+      }
+    };
+
+    fetchHappyStories();
+  }, []);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Automatikus lapozás beállítása
+  // Automatikus lapozás beállítása a történeteknél
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentStoryIndex((prevIndex) => (prevIndex + 1) % stories.length);
-    }, 5000); // 5 másodpercenként vált
+    if (happyStories.length === 0) return;
 
-    return () => clearInterval(interval); // Tisztítás a komponens unmount-olásakor
-  }, [stories.length]);
+    const interval = setInterval(() => {
+      setCurrentStoryIndex((prevIndex) => (prevIndex + 1) % happyStories.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [happyStories.length]);
 
   // Billentyűzet események kezelése
   useEffect(() => {
@@ -86,17 +96,23 @@ const Home = () => {
   }, [currentStoryIndex]);
 
   const goToNextStory = () => {
-    setCurrentStoryIndex((prevIndex) => (prevIndex + 1) % stories.length);
+    if (happyStories.length === 0) return;
+    setCurrentStoryIndex((prevIndex) => (prevIndex + 1) % happyStories.length);
   };
 
   const goToPreviousStory = () => {
-    setCurrentStoryIndex((prevIndex) => (prevIndex - 1 + stories.length) % stories.length);
+    if (happyStories.length === 0) return;
+    setCurrentStoryIndex((prevIndex) => (prevIndex - 1 + happyStories.length) % happyStories.length);
   };
 
   // Segédfüggvény a megjelenítendő történetek indexeinek kiszámításához
   const getVisibleStories = () => {
-    const prevIndex = (currentStoryIndex - 1 + stories.length) % stories.length;
-    const nextIndex = (currentStoryIndex + 1) % stories.length;
+    if (happyStories.length === 0) return [];
+    if (happyStories.length === 1) return [0];
+    if (happyStories.length === 2) return [0, 1];
+    
+    const prevIndex = (currentStoryIndex - 1 + happyStories.length) % happyStories.length;
+    const nextIndex = (currentStoryIndex + 1) % happyStories.length;
     return [prevIndex, currentStoryIndex, nextIndex];
   };
 
@@ -105,8 +121,7 @@ const Home = () => {
       {/* Hero Section */}
       <div
         ref={heroRef}
-        className={`${theme === "dark" ? "bg-gray-800" : "bg-gradient-to-r from-[#64B6FF] to-[#A7D8FF]"} text-white py-12 md:py-32 relative overflow-hidden transition-opacity duration-1000 ${heroInView ? "opacity-100" : "opacity-0"
-          }`}
+        className={`${theme === "dark" ? "bg-gray-800" : "bg-gradient-to-r from-[#64B6FF] to-[#A7D8FF]"} text-white py-12 md:py-32 relative overflow-hidden transition-opacity duration-1000 ${heroInView ? "opacity-100" : "opacity-0"}`}
       >
         <div className="container mx-auto px-4 text-center relative z-10">
           <h1 className="text-3xl md:text-6xl font-bold mb-4">Segítsünk az Állatoknak Hazatalálni!</h1>
@@ -132,13 +147,16 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Boldog Történetek */}
+      {/* Boldog Történetek (Megtalált állatok) */}
       <div
         ref={storiesRef}
-        className={`container mx-auto px-4 py-8 md:py-20 transition-opacity duration-1000 ${storiesInView ? "opacity-100" : "opacity-0"
-          }`}
+        className={`container mx-auto px-4 py-8 md:py-20 transition-opacity duration-1000 ${storiesInView ? "opacity-100" : "opacity-0"}`}
       >
-        <h2 className={`text-2xl md:text-4xl font-bold text-center ${theme === "dark" ? "text-white" : "text-[#073F48]"} mb-6 md:mb-16`}>Elveszve... de már otthon!</h2>
+        <h2 className={`text-2xl md:text-4xl font-bold text-center ${theme === "dark" ? "text-white" : "text-[#073F48]"} mb-6 md:mb-16`}>Sikertörténetek</h2>
+        <p className={`text-center mb-8 ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}>
+          Ezek az állatok már hazataláltak szerető gazdájukhoz
+        </p>
+        
         <div className="relative flex justify-center items-center">
           {/* Balra nyíl */}
           <button
@@ -164,88 +182,108 @@ const Home = () => {
           <div className="flex space-x-4 md:space-x-8 items-center w-full md:w-auto">
             {/* Mobilnézet: 1 kép */}
             <div className="md:hidden w-full">
-              <div className={`${theme === "dark" ? "bg-gray-800" : "bg-gray-100"} p-4 md:p-8 rounded-2xl shadow-xl`}>
-                <div className="relative h-32 md:h-60 mb-4 overflow-hidden rounded-lg">
-                  <img
-                    src={stories[currentStoryIndex].image}
-                    alt={stories[currentStoryIndex].title}
-                    className="w-full h-full object-cover"
-                  />
+              {happyStories.length > 0 ? (
+                <div className={`${theme === "dark" ? "bg-gray-800" : "bg-gray-100"} p-4 md:p-8 rounded-2xl shadow-xl`}>
+                  <div className="relative h-32 md:h-60 mb-4 overflow-hidden rounded-lg">
+                    <img
+                      src={happyStories[currentStoryIndex]?.filePath ? `http://localhost:8000/${happyStories[currentStoryIndex].filePath}` : "https://via.placeholder.com/400x300"}
+                      alt={happyStories[currentStoryIndex]?.allatfaj}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className={`text-lg md:text-2xl font-bold ${theme === "dark" ? "text-white" : "text-[#073F48]"} mb-2 md:mb-4`}>
+                    {happyStories[currentStoryIndex]?.allatfaj || "Ismeretlen állat"}
+                  </h3>
+                  <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-600"} text-xs md:text-base`}>
+                    {happyStories[currentStoryIndex]?.visszajelzes || "Nincs leírás"}
+                  </p>
                 </div>
-                <h3 className={`text-lg md:text-2xl font-bold ${theme === "dark" ? "text-white" : "text-[#073F48]"} mb-2 md:mb-4`}>{stories[currentStoryIndex].title}</h3>
-                <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-600"} text-xs md:text-base`}>{stories[currentStoryIndex].description}</p>
-              </div>
+              ) : (
+                <p className={`text-center ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}>Még nincsenek sikertörténetek.</p>
+              )}
             </div>
 
             {/* Gépi nézet: 3 kép */}
             <div className="hidden md:flex gap-6">
-              {getVisibleStories().map((index, i) => (
-                <div
-                  key={index}
-                  className={`${theme === "dark" ? "bg-gray-800" : "bg-gray-100"} p-6 md:p-8 rounded-2xl shadow-xl transition-all duration-300 ${i === 1 ? "scale-110 transform-origin-center z-20" : "scale-90 opacity-75 z-10"
+              {happyStories.length > 0 ? (
+                getVisibleStories().map((index) => (
+                  <div
+                    key={happyStories[index]?.id || index}
+                    className={`${theme === "dark" ? "bg-gray-800" : "bg-gray-100"} p-6 md:p-8 rounded-2xl shadow-xl transition-all duration-300 ${
+                      index === currentStoryIndex ? "scale-110 transform-origin-center z-20" : "scale-90 opacity-75 z-10"
                     }`}
-                >
-                  <div className="relative h-48 md:h-60 mb-4 overflow-hidden rounded-2xl">
-                    <img
-                      src={stories[index].image}
-                      alt={stories[index].title}
-                      className="w-full h-full object-cover"
-                    />
+                  >
+                    <div className="relative h-48 md:h-60 mb-4 overflow-hidden rounded-2xl">
+                      <img
+                        src={happyStories[index]?.filePath ? `http://localhost:8000/${happyStories[index].filePath}` : "https://via.placeholder.com/400x300"}
+                        alt={happyStories[index]?.allatfaj || "Ismeretlen állat"}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <h3 className={`text-xl md:text-2xl font-bold ${theme === "dark" ? "text-white" : "text-[#073F48]"} mb-4`}>
+                      {happyStories[index]?.allatfaj || "Ismeretlen állat"}
+                    </h3>
+                    <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-600"} text-sm md:text-base`}>
+                      {happyStories[index]?.visszajelzes || "Nincs leírás"}
+                    </p>
                   </div>
-                  <h3 className={`text-xl md:text-2xl font-bold ${theme === "dark" ? "text-white" : "text-[#073F48]"} mb-4`}>{stories[index].title}</h3>
-                  <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-600"} text-sm md:text-base`}>{stories[index].description}</p>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className={`text-center ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}>Még nincsenek sikertörténetek.</p>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Elveszett Állatok Galériája */}
-<div
-  ref={galleryRef}
-  className={`${theme === "dark" ? "bg-gray-800" : "bg-[#F0EDEE]"} py-8 md:py-20 transition-opacity duration-1000 ${galleryInView ? "opacity-100" : "opacity-0"}`}
->
-  <div className="container mx-auto px-4">
-    <h2 className={`text-2xl md:text-4xl font-bold text-center ${theme === "dark" ? "text-white" : "text-[#073F48]"} mb-6 md:mb-16`}>Elveszett Állatok Galériája</h2>
-    <div className="flex flex-wrap justify-center gap-6">
-      {lostAnimals.length > 0 ? (
-        lostAnimals.map((animal) => (
-          <div
-            key={animal.id}
-            className="h-full" // Ez biztosítja, hogy minden kártya ugyanolyan magas legyen
-          >
-            <div className={`
-              h-full flex flex-col
-              transition-all duration-300 
-              hover:scale-105 hover:shadow-xl
-              ${theme === "dark" ? "bg-gray-700" : "bg-white"}
-              rounded-xl overflow-hidden
-            `}>
-              <LostAnimalTemplate animal={animal} />
-            </div>
-          </div>
-        ))
-      ) : (
-        <p className={`${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>Nincs adat</p>
-      )}
-    </div>
-    <div className="text-center mt-6 md:mt-12">
-      <Link
-        to="/osszallat"
-        className={`${theme === "dark" ? "bg-gray-700 hover:bg-gray-600" : "bg-[#64B6FF] hover:bg-[#88c4f8]"} text-white font-semibold py-2 px-4 md:py-3 md:px-8 rounded-full transition duration-300 shadow-lg text-sm md:text-base`}
+      {/* Elveszett Állatok */}
+      <div
+        ref={lostAnimalsRef}
+        className={`${theme === "dark" ? "bg-gray-800" : "bg-[#F0EDEE]"} py-8 md:py-20 transition-opacity duration-1000 ${lostAnimalsInView ? "opacity-100" : "opacity-0"}`}
       >
-        További elveszett állatok megtekintése
-      </Link>
-    </div>
-  </div>
-</div>
+        <div className="container mx-auto px-4">
+          <h2 className={`text-2xl md:text-4xl font-bold text-center ${theme === "dark" ? "text-white" : "text-[#073F48]"} mb-6 md:mb-16`}>Elveszett Állatok</h2>
+          <p className={`text-center mb-8 ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}>
+            Ezek az állatok még keresik szerető otthonukat
+          </p>
+          
+          <div className="flex flex-wrap justify-center gap-8">
+            {lostAnimals && lostAnimals.length > 0 ? (
+              lostAnimals.slice(0, 6).map((animal) => (
+                <div
+                  key={animal.id}
+                  className="w-full sm:w-auto"
+                >
+                  <LostAnimalTemplate animal={animal} />
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className={`text-lg ${theme === "dark" ? "text-gray-300" : "text-gray-600"} mb-4`}>
+                  Jelenleg nincsenek jóváhagyott elveszett állatok.
+                </p>
+                <p className={`text-base ${theme === "dark" ? "text-gray-400" : "text-gray-500"}`}>
+                  Ha elveszett a kisállatod, kattints az "Elveszett Kisállatom" gombra a főoldalon.
+                </p>
+              </div>
+            )}
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link
+              to="/osszeselveszett"
+              className={`${theme === "dark" ? "bg-gray-700 hover:bg-gray-600" : "bg-[#64B6FF] hover:bg-[#88c4f8]"} text-white font-semibold py-2 px-4 md:py-3 md:px-8 rounded-full transition duration-300 shadow-lg text-sm md:text-base`}
+            >
+              További elveszett állatok megtekintése
+            </Link>
+          </div>
+        </div>
+      </div>
 
       {/* CTA (Call to Action) */}
       <div
         ref={ctaRef}
-        className={`py-8 md:py-20 transition-opacity duration-1000 ${ctaInView ? "opacity-100" : "opacity-0"
-          }`}
+        className={`py-8 md:py-20 transition-opacity duration-1000 ${ctaInView ? "opacity-100" : "opacity-0"}`}
       >
         <div className="container mx-auto px-4 text-center">
           <h2 className={`text-2xl md:text-4xl font-bold mb-4 ${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>Segítsünk Együtt!</h2>

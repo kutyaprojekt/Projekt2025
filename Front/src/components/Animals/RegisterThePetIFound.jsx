@@ -15,7 +15,6 @@ const RegisterThePetIFound = () => {
   const { theme } = useTheme();
 
   let formObj = {
-    nev: "Ismeretlen",
     talaltvagyelveszett: "talalt",
     allatfaj: "",
     allatkategoria: "",

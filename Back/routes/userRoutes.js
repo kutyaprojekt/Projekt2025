@@ -24,8 +24,9 @@ const {
     editmyprofile,
     updatePassword,
     updatelosttofound, 
-    
-    
+    approveAnimal,
+    rejectAnimal,
+    getHappyStories, // Új kontroller hozzáadva
 } = require('../controllers/userController');
 
 
@@ -51,9 +52,9 @@ router.post("/talaltallat", protect, upload.single("file"), talaltallat);
 
 router.get("/alluser", protect ,getAllUser);
 router.get("/me", protect, getMe)
-router.get("/osszallat", osszeselveszett )
-router.get("/adminusers", protect, osszesAdat )
-router.get("/adminposts", osszesAdat )
+router.get("/osszeselveszett", osszeselveszett)
+router.get("/adminusers", protect, osszesAdat)
+router.get("/adminposts", osszesAdat)
 router.get("/felhasznalok/:id", protect, getUserById);
 router.get("/allatok/:id", getAnimalById);
 router.get("/megtalaltallatok", megtalalltallatok); 
@@ -67,8 +68,11 @@ router.patch('/losttofound/:id', protect, updatelosttofound);
 router.delete("/felhasznalok/:id", deleteUser);
 router.delete("/allatok/:id", deleteAnimal);
 
+// Add new routes for post approval and rejection
+router.patch("/allatok/:id/approve", protect, approveAnimal);
+router.put("/allatok/:id/elutasit", protect, rejectAnimal);
 
-
-
+// Új útvonal a boldog történetekhez
+router.get("/happy-stories", getHappyStories);
 
 module.exports = router

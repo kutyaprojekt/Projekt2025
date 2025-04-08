@@ -55,7 +55,7 @@ const AnimalDetailsModal = ({ isOpen, onClose, animal }) => {
                                 <div className="w-60 h-60 rounded-lg overflow-hidden shadow-lg border-2 border-gray-300">
                                     <img
                                         src={`http://localhost:8000/${animal.filePath}`}
-                                        alt={animal.nev}
+                                        alt={animal.allatfaj}
                                         className="w-full h-full object-cover"
                                     />
                                 </div>
@@ -66,7 +66,7 @@ const AnimalDetailsModal = ({ isOpen, onClose, animal }) => {
                         <div className="w-full md:w-2/3 flex flex-col gap-6">
                             <div className="text-center md:text-left">
                                 <h2 className="text-3xl font-bold flex items-center gap-2">
-                                    <FaPaw className="text-yellow-500" /> {animal.nev}
+                                    <FaPaw className="text-yellow-500" /> {animal.allatfaj}
                                 </h2>
                                 <p className={`${textSecondary} text-lg`}>
                                     {animal.allatfaj} {/* Állatfaj mindig megjelenik */}

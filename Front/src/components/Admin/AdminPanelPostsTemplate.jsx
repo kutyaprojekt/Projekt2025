@@ -7,13 +7,9 @@ const AdminPanelPostsTemplate = () => {
       const [password, setPassword] = useState(''); // Állapot a jelszó tárolására
       const [showPasswordField, setShowPasswordField] = useState(false); // Állapot a jelszó mező megjelenítéséhez
   
-
-  
-
-  
       return (
           <div className="card bg-base-100 w-96 shadow-xl">
-              a
+              
           </div>
       );
   };

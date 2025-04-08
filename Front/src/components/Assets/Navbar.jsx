@@ -91,6 +91,36 @@ const Navbar = () => {
 
           {/* Right Section: Profile Menu and Theme Toggle */}
           <div className="flex items-center">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="lg:hidden mr-4 p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                {isMenuOpen ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                )}
+              </svg>
+            </button>
+
             <button
               onClick={toggleTheme}
               className="p-1 md:p-2 mr-2 md:mr-4 rounded-full bg-gray-200 hover:bg-gray-300 transition duration-300"
@@ -186,53 +216,72 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className={`lg:hidden ${theme === "dark" ? "bg-gray-800" : "bg-white"} shadow-lg`}>
-          <ul className="flex flex-col space-y-4 p-4">
-            <li>
-              <Link to="/elveszettallat" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
-                Elveszett feltöltés
-              </Link>
-            </li>
-            <li>
-              <Link to="/talaltallat" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
-                Megtalált feltöltés
-              </Link>
-            </li>
-            <li>
-              <Link to="/osszallat" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
-                Összes elveszett
-              </Link>
-            </li>
-            <li>
-              <Link to="/megtalaltallatok" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
-                Megtalált
-              </Link>
-            </li>
-            {isLoggedIn && (
+      <div className={`lg:hidden ${theme === "dark" ? "bg-gray-800" : "bg-white"} shadow-lg transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+        <ul className="flex flex-col space-y-4 p-4">
+          <li>
+            <Link to="/elveszettallat" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
+              Elveszett feltöltés
+            </Link>
+          </li>
+          <li>
+            <Link to="/talaltallat" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
+              Megtalált feltöltés
+            </Link>
+          </li>
+          <li>
+            <Link to="/osszallat" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
+              Összes elveszett
+            </Link>
+          </li>
+          <li>
+            <Link to="/megtalaltallatok" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
+              Megtalált
+            </Link>
+          </li>
+          {isLoggedIn && (
+            <>
+              <li>
+                <Link to="/profilom" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
+                  Profilom
+                </Link>
+              </li>
               <li>
                 <Link to="/posztjaim" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
                   Posztjaim
                 </Link>
               </li>
-            )}
-            {user && user.admin === "true" && (
-              <>
-                <li>
-                  <Link to="/adminposts" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
-                    Bejegyzések
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/adminusers" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
-                    Felhasználók
-                  </Link>
-                </li>
-              </>
-            )}
-          </ul>
-        </div>
-      )}
+            </>
+          )}
+          {user && user.admin === "true" && (
+            <>
+              <li>
+                <Link to="/adminposts" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
+                  Bejegyzések
+                </Link>
+              </li>
+              <li>
+                <Link to="/adminusers" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
+                  Felhasználók
+                </Link>
+              </li>
+            </>
+          )}
+          {!isLoggedIn && (
+            <>
+              <li>
+                <Link to="/regisztracio" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
+                  Regisztráció
+                </Link>
+              </li>
+              <li>
+                <Link to="/login" className={`${theme === "dark" ? "text-white" : "text-black"} text-lg hover:text-blue-500 transition duration-300`} onClick={handleLinkClick}>
+                  Bejelentkezés
+                </Link>
+              </li>
+            </>
+          )}
+        </ul>
+      </div>
     </nav>
   );
 };

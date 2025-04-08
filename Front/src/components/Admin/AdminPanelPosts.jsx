@@ -4,7 +4,8 @@ import { useTheme } from "../../context/ThemeContext";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Modal from 'react-modal';
-import { FaInfoCircle, FaCheck, FaTrash, FaTimes, FaCommentDots, FaPaw } from 'react-icons/fa';
+import { FaInfoCircle, FaCheck, FaTrash, FaTimes, FaCommentDots, FaPaw, FaSearch, FaUserShield } from 'react-icons/fa';
+import SideBarMenu from '../LoggedUser/Profile/SidebarMenu/SideBarMenu';
 
 Modal.setAppElement('#root');
 
@@ -18,14 +19,15 @@ const AdminPanelPosts = () => {
     const [customMessage, setCustomMessage] = useState('');
     const [showRejectionModal, setShowRejectionModal] = useState(false);
     const [selectedPostId, setSelectedPostId] = useState(null);
+    const [activeTab, setActiveTab] = useState('posztok');
     
     const token = localStorage.getItem("usertoken");
     const { user } = useContext(UserContext);
     const { theme } = useTheme();
+    const isAdmin = user?.admin === "true";
 
     // Predefined rejection reasons
     const predefinedReasons = [
-        "Név hiányzik",
         "Helytelen állatfaj",
         "Hiányzó helyszín",
         "Nem megfelelő kép",
@@ -79,25 +81,27 @@ const AdminPanelPosts = () => {
         }
     };
 
-    const handleApproveAnimal = async (animalId) => {
+    const handleApproveAnimal = async (id) => {
         try {
-            const response = await fetch(`http://localhost:8000/felhasznalok/allatok/${animalId}/jovahagy`, {
-                method: "PUT",
+            const response = await fetch(`http://localhost:8000/felhasznalok/allatok/${id}/approve`, {
+                method: 'PATCH',
                 headers: {
-                    "Content-type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
-            if (response.ok) {
-                loadAdatok();
-                toast.success("Állat sikeresen jóváhagyva!");
-            } else {
-                const errorText = await response.text();
-                toast.error("Hiba történt a jóváhagyás során: " + errorText);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Hiba történt a jóváhagyás során');
             }
+
+            toast.success('Poszt sikeresen jóváhagyva!');
+            loadAdatok(); // Frissítjük a posztok listáját
         } catch (error) {
-            toast.error("Hiba történt a jóváhagyás során: " + error.message);
+            console.error('Hiba:', error);
+            toast.error(error.message || 'Hiba történt a jóváhagyás során');
         }
     };
 
@@ -107,33 +111,37 @@ const AdminPanelPosts = () => {
             return;
         }
 
-        // Simulate rejection - no backend call
-        setAdatok(prev => prev.map(post => 
-            post.id === animalId ? { 
-                ...post, 
-                approved: false,
-                rejected: true,
-                rejectionReasons: [
-                    ...(post.rejectionReasons || []),
-                    { 
-                        reason: rejectionReason, 
-                        message: customMessage,
-                        date: new Date().toISOString(),
-                        admin: user.username
-                    }
-                ]
-            } : post
-        ));
-        
-        toast.success("Poszt elutasítva!");
-        setRejectionReason('');
-        setCustomMessage('');
-        setShowRejectionModal(false);
+        try {
+            const response = await fetch(`http://localhost:8000/felhasznalok/allatok/${animalId}/elutasit`, {
+                method: "PUT",
+                headers: {
+                    "Content-type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    reason: rejectionReason,
+                    message: customMessage
+                })
+            });
+
+            if (response.ok) {
+                loadAdatok();
+                toast.success("Poszt sikeresen elutasítva!");
+                setRejectionReason('');
+                setCustomMessage('');
+                setShowRejectionModal(false);
+            } else {
+                const errorText = await response.text();
+                toast.error("Hiba történt az elutasítás során: " + errorText);
+            }
+        } catch (error) {
+            console.error("Hiba történt az elutasítás során:", error);
+            toast.error("Hiba történt az elutasítás során: " + error.message);
+        }
     };
 
     const filteredAnimals = adatok.filter(animal => {
-        const matchesSearch = animal.nev.toLowerCase().includes(searchTerm.toLowerCase()) || 
-            animal.allatfaj.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = animal.allatfaj.toLowerCase().includes(searchTerm.toLowerCase());
 
         if (filter === 'all') return matchesSearch;
         if (filter === 'approved') return matchesSearch && animal.approved;
@@ -157,107 +165,199 @@ const AdminPanelPosts = () => {
     }, []);
 
     return (
-        <div className={`min-h-screen p-6 ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gradient-to-r from-[#64B6FF] to-[#A7D8FF] text-[#073F48]"}`}>
-            <div className="max-w-7xl mx-auto p-5">
-                <h1 className="text-4xl font-extrabold text-center mt-16 mb-4">Összes poszt</h1>
+        <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-[#F0F4F8]'}`}>
+            <div className="container mx-auto px-4 pt-24 pb-12 flex flex-col md:flex-row gap-8">
+                {/* Oldalsó menü */}
+                <SideBarMenu 
+                    activeTab={activeTab} 
+                    setActiveTab={setActiveTab} 
+                    isAdmin={isAdmin} 
+                />
 
-                <div className="flex justify-center mb-6 gap-4">
-                    <input
-                        type="text"
-                        placeholder="Keresés állatok között..."
-                        className={`input input-bordered w-full max-w-sm p-3 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-600 ${theme === "dark" ? "bg-gray-700 text-white border-gray-600" : "bg-white text-[#073F48] border-[#1A73E8]"}`}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    <select
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
-                        className={`select select-bordered w-full max-w-xs ${theme === "dark" ? "bg-gray-700 text-white border-gray-600" : "bg-white text-[#073F48] border-[#1A73E8]"}`}
-                    >
-                        <option value="all">Összes</option>
-                        <option value="approved">Jóváhagyottak</option>
-                        <option value="pending">Jóváhagyásra várók</option>
-                        <option value="rejected">Elutasítottak</option>
-                    </select>
-                </div>
+                {/* Fő tartalom */}
+                <div className={`flex-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6 md:p-8`}>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+                        <h2 className={`text-2xl font-bold flex items-center ${theme === 'dark' ? 'text-white' : 'text-[#073F48]'} mb-4 md:mb-0`}>
+                            <FaPaw className="w-6 h-6 mr-3 text-[#1A73E8]" />
+                            Posztok kezelése
+                        </h2>
 
-                <div className="overflow-x-auto shadow-lg rounded-lg">
-                    <table className={`table-auto w-full ${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-[#073F48]"}`}>
-                        <thead className={`${theme === "dark" ? "bg-gray-700" : "bg-blue-600 text-white"}`}>
-                            <tr>
-                                <th className="py-3 px-5 text-left">
-                                    <FaPaw className="inline-block mr-2" />
-                                    Név
-                                </th>
-                                <th className="py-3 px-5 text-left">
-                                    <FaPaw className="inline-block mr-2" />
-                                    Faj
-                                </th>
-                                <th className="py-3 px-5 text-left">
-                                    <FaPaw className="inline-block mr-2" />
-                                    Státusz
-                                </th>
-                                <th className="py-3 px-5 text-center">
-                                    Műveletek
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredAnimals.map((animal) => (
-                                <tr key={animal.id} className={`${theme === "dark" ? "bg-gray-800 hover:bg-gray-700" : "bg-white hover:bg-gray-100"}`}>
-                                    <td className="py-3 px-5">{animal.nev}</td>
-                                    <td className="py-3 px-5">{animal.allatfaj}</td>
-                                    <td className="py-3 px-5">
-                                        {animal.approved ? (
-                                            <span className="text-green-600">Jóváhagyva</span>
-                                        ) : animal.rejected ? (
-                                            <span className="text-red-600">Elutasítva</span>
-                                        ) : (
-                                            <span className="text-yellow-600">Jóváhagyásra vár</span>
-                                        )}
-                                    </td>
-                                    <td className="py-3 px-5">
-                                        <div className="flex justify-end gap-4">
-                                            {!animal.approved && !animal.rejected && (
-                                                <>
-                                                    <button
-                                                        className={`btn btn-sm px-4 py-2 rounded-full ${theme === "dark" ? "bg-green-700 hover:bg-green-800 text-white" : "bg-green-600 hover:bg-green-700 text-white"}`}
-                                                        onClick={() => handleApproveAnimal(animal.id)}
-                                                    >
-                                                        <FaCheck className="inline-block mr-2" />
-                                                        Jóváhagyás
-                                                    </button>
-                                                    <button
-                                                        className={`btn btn-sm px-4 py-2 rounded-full ${theme === "dark" ? "bg-red-700 hover:bg-red-800 text-white" : "bg-red-600 hover:bg-red-700 text-white"}`}
-                                                        onClick={() => {
-                                                            setSelectedPostId(animal.id);
-                                                            setShowRejectionModal(true);
-                                                        }}
-                                                    >
-                                                        <FaTimes className="inline-block mr-2" />
-                                                        Elutasítás
-                                                    </button>
-                                                </>
-                                            )}
-                                            <button
-                                                className={`btn btn-sm px-4 py-2 rounded-full ${theme === "dark" ? "bg-gray-700 hover:bg-gray-800 text-white" : "bg-gray-600 hover:bg-gray-700 text-white"}`}
-                                                onClick={() => handleDeleteAnimal(animal.id)}
-                                            >
-                                                <FaTrash className="inline-block mr-2" />
-                                                Törlés
-                                            </button>
-                                            <span
-                                                className={`inline-flex items-center cursor-pointer ${theme === "dark" ? "text-gray-400 hover:text-gray-300" : "text-gray-600 hover:text-gray-800"}`}
-                                                onClick={() => openModal(animal)}
-                                            >
-                                                <FaInfoCircle size={20} />
-                                            </span>
-                                        </div>
-                                    </td>
+                        <div className="flex flex-col md:flex-row gap-4">
+                            {/* Keresés mező */}
+                            <div className="relative w-full md:w-64">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <FaSearch className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} />
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Keresés..."
+                                    className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:outline-none ${
+                                        theme === 'dark' 
+                                            ? 'bg-gray-700 text-white border-gray-600 focus:ring-[#1A73E8] focus:border-[#1A73E8]' 
+                                            : 'bg-white text-[#073F48] border-gray-300 focus:ring-[#1A73E8] focus:border-[#1A73E8]'
+                                    }`}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+
+                            {/* Szűrő */}
+                            <select
+                                value={filter}
+                                onChange={(e) => setFilter(e.target.value)}
+                                className={`w-full md:w-auto px-4 py-2.5 border rounded-lg focus:ring-2 focus:outline-none ${
+                                    theme === 'dark' 
+                                        ? 'bg-gray-700 text-white border-gray-600 focus:ring-[#1A73E8] focus:border-[#1A73E8]' 
+                                        : 'bg-white text-[#073F48] border-gray-300 focus:ring-[#1A73E8] focus:border-[#1A73E8]'
+                                }`}
+                            >
+                                <option value="all">Összes</option>
+                                <option value="approved">Jóváhagyottak</option>
+                                <option value="pending">Jóváhagyásra várók</option>
+                                <option value="rejected">Elutasítottak</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Táblázat */}
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'} text-left`}>
+                                <tr>
+                                    <th className="py-3 px-4 font-medium rounded-tl-lg">
+                                        <span className={`flex items-center ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                            <FaPaw className="mr-2" />
+                                            Faj
+                                        </span>
+                                    </th>
+                                    <th className="py-3 px-4 font-medium">
+                                        <span className={`flex items-center ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                            <FaPaw className="mr-2" />
+                                            Kategória
+                                        </span>
+                                    </th>
+                                    <th className="py-3 px-4 font-medium">
+                                        <span className={`flex items-center ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                            <FaUserShield className="mr-2" />
+                                            Státusz
+                                        </span>
+                                    </th>
+                                    <th className="py-3 px-4 font-medium rounded-tr-lg text-right">
+                                        <span className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                            Műveletek
+                                        </span>
+                                    </th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {filteredAnimals.map((animal) => (
+                                    <tr key={animal.id} className={`border-b ${
+                                        theme === 'dark' 
+                                            ? 'border-gray-700 hover:bg-gray-700/80' 
+                                            : 'border-gray-200 hover:bg-gray-50'
+                                    }`}>
+                                        <td className="py-4 px-4">
+                                            <div className="flex items-center">
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
+                                                    theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+                                                }`}>
+                                                    <FaPaw className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} />
+                                                </div>
+                                                <span className={`${theme === 'dark' ? 'text-white' : 'text-[#073F48]'}`}>
+                                                    {animal.allatfaj}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className={`py-4 px-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                            {animal.kategoria || '-'}
+                                        </td>
+                                        <td className="py-4 px-4">
+                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                                animal.elutasitva === "true"
+                                                    ? theme === 'dark'
+                                                        ? 'bg-red-900/30 text-red-400'
+                                                        : 'bg-red-100 text-red-800'
+                                                    : animal.elutasitva === "false"
+                                                        ? theme === 'dark'
+                                                            ? 'bg-green-900/30 text-green-400'
+                                                            : 'bg-green-100 text-green-800'
+                                                        : theme === 'dark'
+                                                            ? 'bg-yellow-900/30 text-yellow-400'
+                                                            : 'bg-yellow-100 text-yellow-800'
+                                            }`}>
+                                                {animal.elutasitva === "true" 
+                                                    ? "Elutasítva" 
+                                                    : animal.elutasitva === "false" 
+                                                        ? "Jóváhagyva" 
+                                                        : "Jóváhagyásra vár"}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 px-4">
+                                            <div className="flex justify-end space-x-2">
+                                                {animal.elutasitva === "" && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleApproveAnimal(animal.id)}
+                                                            className={`p-2 rounded-lg transition-colors ${
+                                                                theme === 'dark'
+                                                                    ? 'bg-green-900/20 hover:bg-green-900/30 text-green-400'
+                                                                    : 'bg-green-100 hover:bg-green-200 text-green-600'
+                                                            }`}
+                                                            title="Jóváhagyás"
+                                                        >
+                                                            <FaCheck className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedPostId(animal.id);
+                                                                setShowRejectionModal(true);
+                                                            }}
+                                                            className={`p-2 rounded-lg transition-colors ${
+                                                                theme === 'dark'
+                                                                    ? 'bg-red-900/20 hover:bg-red-900/30 text-red-400'
+                                                                    : 'bg-red-100 hover:bg-red-200 text-red-600'
+                                                            }`}
+                                                            title="Elutasítás"
+                                                        >
+                                                            <FaTimes className="w-4 h-4" />
+                                                        </button>
+                                                    </>
+                                                )}
+                                                <button
+                                                    onClick={() => handleDeleteAnimal(animal.id)}
+                                                    className={`p-2 rounded-lg transition-colors ${
+                                                        theme === 'dark'
+                                                            ? 'bg-red-900/20 hover:bg-red-900/30 text-red-400'
+                                                            : 'bg-red-100 hover:bg-red-200 text-red-600'
+                                                    }`}
+                                                    title="Törlés"
+                                                >
+                                                    <FaTrash className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => openModal(animal)}
+                                                    className={`p-2 rounded-lg transition-colors ${
+                                                        theme === 'dark'
+                                                            ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                                                            : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                                                    }`}
+                                                    title="Részletek"
+                                                >
+                                                    <FaInfoCircle className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {filteredAnimals.length === 0 && (
+                            <div className={`py-12 text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                Nincs megjeleníthető poszt
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -267,7 +367,7 @@ const AdminPanelPosts = () => {
                 onRequestClose={closeModal}
                 contentLabel="Állat részletes adatai"
                 className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-gray-900"} rounded-lg p-6 w-11/12 max-w-4xl mx-auto mt-20 relative`}
-                overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+                overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
             >
                 {selectedAnimal && (
                     <div className="flex flex-col md:flex-row gap-6">
@@ -275,18 +375,17 @@ const AdminPanelPosts = () => {
                             <div className="flex justify-center md:justify-start">
                                 <img
                                     src={`http://localhost:8000/${selectedAnimal.filePath}`}
-                                    alt={selectedAnimal.nev}
+                                    alt={selectedAnimal.allatfaj}
                                     className="w-48 h-48 object-cover rounded-lg"
                                 />
                             </div>
                         )}
                         <div className="flex-1">
-                            <h2 className="text-2xl font-bold mb-4">{selectedAnimal.nev} adatai</h2>
+                            <h2 className="text-2xl font-bold mb-4">{selectedAnimal.allatfaj} adatai</h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <p><strong>Faj:</strong> {selectedAnimal.allatfaj}</p>
-                                    <p><strong>Kategória:</strong> {selectedAnimal.kategoria}</p>
-                                    <p><strong>Név:</strong> {selectedAnimal.nev}</p>
+                                    <p><strong>Kategória:</strong> {selectedAnimal.kategoria || '-'}</p>
                                 </div>
                                 <div>
                                     <p><strong>Szín:</strong> {selectedAnimal.szin}</p>
@@ -321,9 +420,14 @@ const AdminPanelPosts = () => {
                     </div>
                 )}
                 <button
-                    className={`absolute top-4 right-4 px-4 py-2 rounded-lg text-sm font-semibold ${theme === "dark" ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-200 hover:bg-gray-300"} text-gray-900`}
+                    className={`absolute top-4 right-4 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                        theme === "dark" 
+                            ? "bg-gray-700 hover:bg-gray-600 text-white" 
+                            : "bg-gray-100 hover:bg-gray-200 text-gray-800"
+                    }`}
                     onClick={closeModal}
                 >
+                    <FaTimes className="inline-block mr-2" />
                     Bezárás
                 </button>
             </Modal>
@@ -332,64 +436,105 @@ const AdminPanelPosts = () => {
             <Modal
                 isOpen={showRejectionModal}
                 onRequestClose={() => setShowRejectionModal(false)}
-                className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-white"} rounded-xl p-6 w-11/12 max-w-xl mx-auto mt-20`}
-                overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+                className={`${theme === "dark" ? "bg-gray-800 text-white" : "bg-white"} rounded-xl p-6 w-11/12 max-w-xl mx-auto mt-20 shadow-xl transform transition-all`}
+                overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                style={{
+                    overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        backdropFilter: 'blur(4px)'
+                    }
+                }}
             >
-                <div className="space-y-4">
-                    <h3 className="text-xl font-bold flex items-center gap-2">
-                        <FaCommentDots className="text-red-500" />
-                        Poszt elutasítása
-                    </h3>
-                    
-                    <select
-                        value={rejectionReason}
-                        onChange={(e) => setRejectionReason(e.target.value)}
-                        className={`w-full p-3 rounded-lg border ${
-                            theme === "dark" 
-                                ? "bg-gray-700 border-gray-600" 
-                                : "bg-white border-gray-300"
-                        }`}
-                    >
-                        <option value="">Válassz okot...</option>
-                        {predefinedReasons.map((reason, index) => (
-                            <option key={index} value={reason}>{reason}</option>
-                        ))}
-                    </select>
-
-                    <textarea
-                        placeholder="Egyéni üzenet (opcionális)"
-                        value={customMessage}
-                        onChange={(e) => setCustomMessage(e.target.value)}
-                        className={`w-full p-3 rounded-lg border ${
-                            theme === "dark" 
-                                ? "bg-gray-700 border-gray-600" 
-                                : "bg-white border-gray-300"
-                        }`}
-                        rows="3"
-                    />
-
-                    <div className="flex justify-end gap-3">
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-xl font-bold flex items-center gap-2">
+                            <FaCommentDots className="text-red-500" />
+                            Poszt elutasítása
+                        </h3>
                         <button
                             onClick={() => setShowRejectionModal(false)}
-                            className={`px-4 py-2 rounded-lg ${
-                                theme === "dark" 
-                                    ? "bg-gray-600 hover:bg-gray-700" 
-                                    : "bg-gray-200 hover:bg-gray-300"
+                            className={`p-2 rounded-lg transition-colors ${
+                                theme === "dark"
+                                    ? "hover:bg-gray-700 text-gray-400 hover:text-gray-300"
+                                    : "hover:bg-gray-100 text-gray-600 hover:text-gray-800"
                             }`}
                         >
+                            <FaTimes className="w-5 h-5" />
+                        </button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                        <div>
+                            <label className={`block text-sm font-medium mb-2 ${
+                                theme === "dark" ? "text-gray-300" : "text-gray-700"
+                            }`}>
+                                Elutasítás oka
+                            </label>
+                            <select
+                                value={rejectionReason}
+                                onChange={(e) => setRejectionReason(e.target.value)}
+                                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                                    theme === "dark" 
+                                        ? "bg-gray-700 border-gray-600 text-white focus:ring-[#1A73E8] focus:border-[#1A73E8]" 
+                                        : "bg-white border-gray-300 text-[#073F48] focus:ring-[#1A73E8] focus:border-[#1A73E8]"
+                                }`}
+                            >
+                                <option value="">Válassz okot...</option>
+                                {predefinedReasons.map((reason, index) => (
+                                    <option key={index} value={reason}>{reason}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className={`block text-sm font-medium mb-2 ${
+                                theme === "dark" ? "text-gray-300" : "text-gray-700"
+                            }`}>
+                                Egyéni üzenet (opcionális)
+                            </label>
+                            <textarea
+                                placeholder="Adj meg további részleteket..."
+                                value={customMessage}
+                                onChange={(e) => setCustomMessage(e.target.value)}
+                                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:outline-none transition-colors ${
+                                    theme === "dark" 
+                                        ? "bg-gray-700 border-gray-600 text-white focus:ring-[#1A73E8] focus:border-[#1A73E8]" 
+                                        : "bg-white border-gray-300 text-[#073F48] focus:ring-[#1A73E8] focus:border-[#1A73E8]"
+                                }`}
+                                rows="3"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                            onClick={() => setShowRejectionModal(false)}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                theme === "dark"
+                                    ? "bg-gray-700 hover:bg-gray-600 text-white"
+                                    : "bg-gray-100 hover:bg-gray-200 text-gray-800"
+                            }`}
+                        >
+                            <FaTimes className="inline-block mr-2" />
                             Mégse
                         </button>
                         <button
                             onClick={() => handleRejectAnimal(selectedPostId)}
-                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                theme === "dark"
+                                    ? "bg-red-900/20 hover:bg-red-900/30 text-red-400"
+                                    : "bg-red-100 hover:bg-red-200 text-red-600"
+                            }`}
+                            disabled={!rejectionReason}
                         >
+                            <FaTimes className="inline-block mr-2" />
                             Elutasítás
                         </button>
                     </div>
                 </div>
             </Modal>
 
-            <ToastContainer />
+            <ToastContainer position="bottom-right" theme={theme} />
         </div>
     );
 };

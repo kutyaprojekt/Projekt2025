@@ -1,49 +1,36 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import MyProfileTemplate from './MyProfileTemplate';
+import UserContext from '../../../context/UserContext';
+import { useTheme } from '../../../context/ThemeContext';
 
 const MyProfile = () => {
-  const [user, setUser] = useState(null); // Felhasználó adatainak tárolása
-  const [loading, setLoading] = useState(true); // Betöltés állapota
-  const token = localStorage.getItem("usertoken"); // Token lekérése
+  const { user, refresh } = useContext(UserContext);
+  const { theme } = useTheme();
+  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("usertoken");
 
-  // Profil adatok lekérése
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/felhasznalok/profilom', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Profil adatok lekérése sikertelen');
-        }
-
-        const data = await response.json();
-        setUser(data); 
-      } catch (error) {
-        console.error('Hiba történt:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, [token]);
+    setLoading(false);
+  }, [user, refresh]);
 
   if (loading) {
-    return <div>Betöltés...</div>; 
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-gray-900' : 'bg-[#F0F4F8]'}`}>
+        <div className="text-2xl font-bold">Betöltés...</div>
+      </div>
+    );
   }
 
   if (!user) {
-    return <div>Nem sikerült betölteni a profil adatokat.</div>; // Hiba esetén
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-gray-900' : 'bg-[#F0F4F8]'}`}>
+        <div className="text-2xl font-bold text-red-500">Nem sikerült betölteni a profil adatokat.</div>
+      </div>
+    );
   }
 
   return (
-    <div>
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-[#F0F4F8]'}`}>
       <MyProfileTemplate user={user} />
     </div>
   );

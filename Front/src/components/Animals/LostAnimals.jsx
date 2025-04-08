@@ -6,7 +6,6 @@ const LostAnimals = () => {
     const [animals, setAnimals] = useState([]);
     const [filteredAnimals, setFilteredAnimals] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [searchType, setSearchType] = useState("name");
     const { theme } = useTheme();
 
     useEffect(() => {
@@ -28,14 +27,11 @@ const LostAnimals = () => {
 
     useEffect(() => {
         const filtered = animals.filter(animal => {
-            if (searchType === "name") {
-                return animal.nev.toLowerCase().includes(searchTerm.toLowerCase());
-            } else {
-                return animal.allatfaj.toLowerCase().includes(searchTerm.toLowerCase());
-            }
+            return animal.allatfaj.toLowerCase().includes(searchTerm.toLowerCase()) && 
+                   animal.elutasitva === "false";
         });
         setFilteredAnimals(filtered);
-    }, [searchTerm, searchType, animals]);
+    }, [searchTerm, animals]);
 
     return (
 <div className={`flex flex-col items-center p-5 ${theme === "dark" ? "bg-gray-900 text-white" : "bg-gradient-to-r from-[#64B6FF] to-[#A7D8FF] text-[#073F48]"} min-h-screen pt-20`}>
@@ -45,20 +41,10 @@ const LostAnimals = () => {
     {/* Keresés és szűrés */}
     <div className="flex flex-col items-center mb-8 w-full max-w-2xl mx-auto">
         <div className="flex flex-col sm:flex-row gap-4 mb-4 w-full sm:w-auto">
-            <div className="w-full sm:w-96">
-                <select
-                    value={searchType}
-                    onChange={(e) => setSearchType(e.target.value)}
-                    className={`p-4 border-2 rounded-lg focus:outline-none focus:ring-4 focus:ring-[#1A73E8] text-lg w-full ${theme === "dark" ? "bg-gray-700 text-white border-gray-600" : "bg-white text-[#073F48] border-[#1A73E8]"}`}
-                >
-                    <option value="name">Név</option>
-                    <option value="species">Faj</option>
-                </select>
-            </div>
             <div className="w-full sm:w-96 mt-4 sm:mt-0">
                 <input
                     type="text"
-                    placeholder={`Keresés ${searchType === "name" ? "név" : "faj"} alapján...`}
+                    placeholder="Keresés faj alapján..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className={`p-3 border-2 rounded-lg focus:outline-none focus:ring-4 focus:ring-[#1A73E8] text-lg w-full ${theme === "dark" ? "bg-gray-700 text-white placeholder-gray-400" : "bg-white text-[#073F48] placeholder-gray-500"}`}

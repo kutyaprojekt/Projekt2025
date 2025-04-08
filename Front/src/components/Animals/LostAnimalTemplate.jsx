@@ -60,7 +60,7 @@ const LostAnimalTemplate = ({ animal }) => {
                 {animal.filePath && (
                     <img
                         src={`http://localhost:8000/${animal.filePath}`}
-                        alt={animal.nev}
+                        alt={animal.allatfaj}
                         className="w-full h-full object-cover"
                     />
                 )}
@@ -70,7 +70,7 @@ const LostAnimalTemplate = ({ animal }) => {
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-xl font-semibold flex items-center gap-2">
                             <FaPaw className="text-yellow-500" />
-                            {animal.nev}
+                            {animal.allatfaj}
                         </h2>
                         <div className="badge badge-error">Elveszett</div>
                     </div>

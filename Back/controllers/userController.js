@@ -150,13 +150,13 @@ const elveszettallat = async (req, res) => {
         allatfaj,
         allatkategoria,
         mikorveszettel,
-        allatneve,
         allatneme,
         allatszine,
         allatmerete,
         egyeb_infok,
         eltuneshelyszine,
         talalt_elveszett,
+        chipszam,
     } = req.body;
 
     // Fájl elérési útja
@@ -165,12 +165,13 @@ const elveszettallat = async (req, res) => {
     // Validáció
     if (
         !allatfaj ||
+        !allatkategoria ||
         !mikorveszettel ||
-        !allatneve ||
         !allatneme ||
         !allatszine ||
         !allatmerete ||
-        !eltuneshelyszine
+        !eltuneshelyszine ||
+        !chipszam
     ) {
         return res.json({ error: "Minden kötelező mező kitöltése szükséges!" });
     }
@@ -182,22 +183,28 @@ const elveszettallat = async (req, res) => {
                 allatfaj: allatfaj,
                 kategoria: allatkategoria || null, // Opcionális mező
                 datum: mikorveszettel,
-                nev: allatneve,
                 neme: allatneme,
                 szin: allatszine,
                 meret: allatmerete,
                 egyeb_info: egyeb_infok || null, // Opcionális mező
                 helyszin: eltuneshelyszine,
                 visszakerult_e: "false",
+                chipszam: BigInt(chipszam), // Konvertáljuk BigInt-té
                 userId: userId, // Felhasználó ID-ja kötelezően megadva
                 talalt_elveszett: talalt_elveszett || "sajatelveszett",
                 filePath: filePath,
             },
         });
 
+        // Konvertáljuk a BigInt értéket stringgé a válasz küldése előtt
+        const responseData = {
+            ...newEAnimal,
+            chipszam: newEAnimal.chipszam.toString()
+        };
+
         res.json({
             message: "Sikeres adatfelvitel!",
-            newEAnimal,
+            newEAnimal: responseData,
         });
     } catch (error) {
         console.error("Hiba történt az adatfelvitel során:", error);
@@ -208,7 +215,6 @@ const elveszettallat = async (req, res) => {
 const talaltallat = async (req, res) => {
     const userId = req.user.id;
     const {
-        nev = "Ismeretlen", // Alapértelmezett érték "Ismeretlen"
         allatfaj = "",
         allatkategoria = "",
         mikorveszettel = "",
@@ -218,6 +224,7 @@ const talaltallat = async (req, res) => {
         egyeb_infok = "",
         eltuneshelyszine = "",
         talalt_elveszett = "",
+        chipszam = "0",
     } = req.body;
 
     // Fájl elérési útja
@@ -231,14 +238,13 @@ const talaltallat = async (req, res) => {
         !allatmerete ||
         !eltuneshelyszine
     ) {
-        return res.json({ error: "Minden mező kitöltése kötelező!" });
+        return res.json({ error: "Minden mező kitöltése kötelező!"  });
     }
 
     try {
         // Új állat létrehozása az adatbázisban
         const newEAnimal = await prisma.animal.create({
             data: {
-                nev: nev, // Itt már csak egyszer adjuk hozzá, az alapértelmezett "Ismeretlen" értékkel
                 allatfaj: allatfaj,
                 kategoria: allatkategoria,
                 datum: mikorveszettel,
@@ -248,16 +254,22 @@ const talaltallat = async (req, res) => {
                 egyeb_info: egyeb_infok,
                 helyszin: eltuneshelyszine,
                 visszakerult_e: "false",
+                chipszam: BigInt(chipszam),
                 userId: userId,
                 talalt_elveszett: talalt_elveszett || "talaltelveszett", 
                 filePath: filePath,
-                // A "nev: ''," sort TÁVOLÍTSD EL innen!
             },
         });
 
+        // Konvertáljuk a BigInt értéket stringgé a válasz küldése előtt
+        const responseData = {
+            ...newEAnimal,
+            chipszam: newEAnimal.chipszam.toString()
+        };
+
         res.json({
             message: "Sikeres adatfelvitel!",
-            newEAnimal,
+            newEAnimal: responseData,
         });
     } catch (error) {
         console.error("Hiba történt az adatfelvitel során:", error);
@@ -288,23 +300,37 @@ const osszesallat = async (req, res) => {
             user: true // Ez fogja lekérni a hozzá tartozó felhasználó adatait is
         }
     });
-    res.json(animals);
+    
+    // Konvertáljuk a BigInt értékeket stringgé
+    const formattedAnimals = animals.map(animal => ({
+        ...animal,
+        chipszam: animal.chipszam.toString()
+    }));
+    
+    res.json(formattedAnimals);
 };
 
 const osszeselveszett = async (req, res) => {
     const animals = await prisma.animal.findMany({
         where: {
-            visszakerult_e: "false",
-            NOT: {
-                id: 0
-            },
-
+            AND: [
+                { visszakerult_e: "false" },
+                { elutasitva: "false" }, // Csak a kifejezetten jóváhagyott állatokat
+                { NOT: { id: 0 } }
+            ]
         },
         include: {
-            user: true // Ez fogja lekérni a hozzá tartozó felhasználó adatait is
+            user: true
         }
     });
-    res.json(animals);
+    
+    // Konvertáljuk a BigInt értékeket stringgé
+    const formattedAnimals = animals.map(animal => ({
+        ...animal,
+        chipszam: animal.chipszam.toString()
+    }));
+    
+    res.json(formattedAnimals);
 };
 
 const osszesAdat = async (req, res) => {
@@ -319,9 +345,15 @@ const osszesAdat = async (req, res) => {
         // Lekérdezzük az összes felhasználót is
         const users = await prisma.user.findMany();
 
+        // Konvertáljuk a BigInt értékeket stringgé
+        const formattedAnimals = animals.map(animal => ({
+            ...animal,
+            chipszam: animal.chipszam.toString()
+        }));
+
         // Összeállítjuk a választ
         const response = {
-            animals: animals,
+            animals: formattedAnimals,
             users: users
         };
 
@@ -425,7 +457,13 @@ const getAnimalById = async (req, res) => {
             return res.status(404).json({ error: "Állat nem található!" });
         }
 
-        res.json(animal); // Visszaadjuk az állat adatait
+        // Konvertáljuk a BigInt értéket stringgé
+        const formattedAnimal = {
+            ...animal,
+            chipszam: animal.chipszam.toString()
+        };
+
+        res.json(formattedAnimal); // Visszaadjuk az állat adatait
     } catch (error) {
         console.error("Hiba történt az állat lekérése során:", error);
         res.status(500).json({ error: "Hiba történt az állat lekérése során" });
@@ -490,7 +528,14 @@ const megtalalltallatok = async (req, res) => {
             user: true // Ez fogja lekérni a hozzá tartozó felhasználó adatait is
         }
     });
-    res.json(animals);
+    
+    // Konvertáljuk a BigInt értékeket stringgé
+    const formattedAnimals = animals.map(animal => ({
+        ...animal,
+        chipszam: animal.chipszam.toString()
+    }));
+    
+    res.json(formattedAnimals);
 };
 
 const userposts = async (req, res) => {
@@ -504,7 +549,13 @@ const userposts = async (req, res) => {
             return res.status(404).json({ error: "Nincsenek posztok!" });
         }
 
-        res.json(animals);
+        // Konvertáljuk a BigInt értékeket stringgé
+        const formattedAnimals = animals.map(animal => ({
+            ...animal,
+            chipszam: animal.chipszam.toString()
+        }));
+
+        res.json(formattedAnimals);
     } catch (error) {
         console.error("Hiba történt a posztok lekérése során:", error);
         res.status(500).json({ error: "Hiba történt a posztok lekérése során" });
@@ -514,6 +565,7 @@ const userposts = async (req, res) => {
 const updatelosttofound = async (req, res) => {
     const animalId = parseInt(req.params.id, 10);
     const userId = req.user.id;
+    const { visszajelzes } = req.body;
 
     try {
         // 1. Állat keresése
@@ -535,12 +587,19 @@ const updatelosttofound = async (req, res) => {
             where: { id: animalId },
             data: {
                 visszakerult_e: "true",
+                visszajelzes: visszajelzes || ""
             },
         });
 
+        // Konvertáljuk a BigInt értéket stringgé
+        const formattedAnimal = {
+            ...updatedAnimal,
+            chipszam: updatedAnimal.chipszam.toString()
+        };
+
         res.json({
             message: "Állat sikeresen megjelölve megtaláltként!",
-            animal: updatedAnimal,
+            animal: formattedAnimal,
         });
     } catch (error) {
         console.error("Hiba történt az állat frissítése során:", error);
@@ -648,6 +707,161 @@ const getMessages = async (req, res) => {
     }
 };
 
+const approveAnimal = async (req, res) => {
+    const animalId = parseInt(req.params.id, 10);
+
+    try {
+        const animal = await prisma.animal.findUnique({
+            where: { id: animalId },
+        });
+
+        if (!animal) {
+            return res.status(404).json({ error: "Állat nem található!" });
+        }
+
+        const updatedAnimal = await prisma.animal.update({
+            where: { id: animalId },
+            data: {
+                elutasitva: "false",
+                elutasitasoka: ""
+            },
+        });
+
+        // Konvertáljuk a BigInt értéket stringgé
+        const formattedAnimal = {
+            ...updatedAnimal,
+            chipszam: updatedAnimal.chipszam.toString()
+        };
+
+        res.json({
+            message: "Poszt sikeresen jóváhagyva!",
+            animal: formattedAnimal
+        });
+    } catch (error) {
+        console.error("Hiba történt a poszt jóváhagyása során:", error);
+        res.status(500).json({ error: "Hiba történt a poszt jóváhagyása során" });
+    }
+};
+
+const rejectAnimal = async (req, res) => {
+    const animalId = parseInt(req.params.id, 10);
+    const { reason, message } = req.body;
+
+    if (!reason) {
+        return res.status(400).json({ error: "Elutasítási ok megadása kötelező!" });
+    }
+
+    try {
+        const animal = await prisma.animal.findUnique({
+            where: { id: animalId },
+        });
+
+        if (!animal) {
+            return res.status(404).json({ error: "Állat nem található!" });
+        }
+
+        const updatedAnimal = await prisma.animal.update({
+            where: { id: animalId },
+            data: {
+                elutasitva: "true",
+                elutasitasoka: reason
+            },
+        });
+
+        // Konvertáljuk a BigInt értéket stringgé
+        const formattedAnimal = {
+            ...updatedAnimal,
+            chipszam: updatedAnimal.chipszam.toString()
+        };
+
+        res.json({
+            message: "Poszt sikeresen elutasítva!",
+            animal: formattedAnimal
+        });
+    } catch (error) {
+        console.error("Hiba történt a poszt elutasítása során:", error);
+        res.status(500).json({ error: "Hiba történt a poszt elutasítása során" });
+    }
+};
+
+const regAnimal = async (req, res) => {
+    try {
+        const {
+            allatfaj,
+            allatkategoria,
+            eltunesidopontja,
+            chipszam,
+            allatneme,
+            allatszine,
+            allatmerete,
+            eltuneshelyszine,
+            egyeb_infok,
+            user_id,
+        } = req.body;
+
+        if (!allatfaj || !eltuneshelyszine || !eltunesidopontja) {
+            return res.status(400).json({ message: "Minden kötelező mezőt ki kell tölteni!" });
+        }
+
+        const newAnimal = await prisma.elveszettallatok.create({
+            data: {
+                allatfaj,
+                allatkategoria,
+                eltunesidopontja,
+                chipszam: BigInt(chipszam || 0),
+                allatneme,
+                allatszine,
+                allatmerete,
+                eltuneshelyszine,
+                egyeb_infok,
+                elutasitva: "",
+                user_id,
+            },
+        });
+
+        // Konvertáljuk a BigInt értéket stringgé
+        const formattedAnimal = {
+            ...newAnimal,
+            chipszam: newAnimal.chipszam.toString()
+        };
+
+        res.status(201).json(formattedAnimal);
+    } catch (error) {
+        console.error("Error registering animal:", error);
+        res.status(500).json({ message: "Hiba történt az állat regisztrálása során." });
+    }
+};
+
+const getHappyStories = async (req, res) => {
+    try {
+        const stories = await prisma.animal.findMany({
+            where: {
+                visszakerult_e: "true",
+                visszajelzes: {
+                    not: ""
+                }
+            },
+            include: {
+                user: true
+            },
+            orderBy: {
+                datum: 'desc'
+            },
+            take: 3
+        });
+
+        // Konvertáljuk a BigInt értékeket stringgé
+        const formattedStories = stories.map(story => ({
+            ...story,
+            chipszam: story.chipszam.toString()
+        }));
+
+        res.json(formattedStories);
+    } catch (error) {
+        console.error("Hiba történt a történetek lekérése során:", error);
+        res.status(500).json({ error: "Hiba történt a történetek lekérése során" });
+    }
+};
 
 module.exports = {
     register,
@@ -671,5 +885,8 @@ module.exports = {
     getMessages,
     updatePassword,
     updatelosttofound,
-
+    approveAnimal,
+    rejectAnimal,
+    regAnimal,
+    getHappyStories,
 };

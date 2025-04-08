@@ -9,6 +9,7 @@ const UserPostsTemplate = ({animal, onUpdate}) => {
     const { theme } = useTheme();
     const [isLoading, setIsLoading] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false); // Állapot a megerősítő ablakhoz
+    const [visszajelzes, setVisszajelzes] = useState("");
 
     const updatelosttofound = async () => {
         setIsLoading(true);
@@ -19,7 +20,8 @@ const UserPostsTemplate = ({animal, onUpdate}) => {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
-                }
+                },
+                body: JSON.stringify({ visszajelzes })
             });
 
             const data = await response.json();
@@ -51,7 +53,7 @@ const UserPostsTemplate = ({animal, onUpdate}) => {
                 {animal.filePath ? (
                     <img 
                         src={`http://localhost:8000/${animal.filePath}`} 
-                        alt={animal.nev} 
+                        alt={animal.allatfaj} 
                         className="w-full h-full object-cover"
                         onError={(e) => {
                             e.target.onerror = null; 
@@ -69,7 +71,7 @@ const UserPostsTemplate = ({animal, onUpdate}) => {
             <div className="flex-grow p-6 flex flex-col">
                 <div className="flex justify-between items-start mb-4">
                     <div>
-                        <h2 className={`text-xl font-bold ${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>{animal.nev}</h2>
+                        <h2 className={`text-xl font-bold ${theme === "dark" ? "text-white" : "text-[#073F48]"}`}>{animal.allatfaj}</h2>
                         <p className={`text-sm ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}>{animal.allatfaj}</p>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -133,10 +135,12 @@ const UserPostsTemplate = ({animal, onUpdate}) => {
             {showConfirmation && (
                 <ConfirmationModal
                     title="Biztos, hogy megtaláltad?"
-                    message={`Valóban megtaláltad ${animal.nev} nevű állatodat? Ez a művelet nem vonható vissza.`}
+                    message={`Valóban megtaláltad ${animal.allatfaj} nevű állatodat? Ez a művelet nem vonható vissza.`}
                     onConfirm={updatelosttofound}
                     onCancel={() => setShowConfirmation(false)}
                     theme={theme}
+                    visszajelzes={visszajelzes}
+                    setVisszajelzes={setVisszajelzes}
                 />
             )}
         </div>

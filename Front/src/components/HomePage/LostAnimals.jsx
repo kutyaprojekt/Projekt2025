@@ -5,7 +5,6 @@ const LostAnimals = () => {
     const [animals, setAnimals] = useState([]);
     const [filteredAnimals, setFilteredAnimals] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [searchType, setSearchType] = useState("name"); // "name" vagy "species"
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -26,14 +25,10 @@ const LostAnimals = () => {
 
     useEffect(() => {
         const filtered = animals.filter(animal => {
-            if (searchType === "name") {
-                return animal.nev.toLowerCase().includes(searchTerm.toLowerCase());
-            } else {
-                return animal.allatfaj.toLowerCase().includes(searchTerm.toLowerCase());
-            }
+            return animal.allatfaj.toLowerCase().includes(searchTerm.toLowerCase());
         });
         setFilteredAnimals(filtered);
-    }, [searchTerm, searchType, animals]);
+    }, [searchTerm, animals]);
 
     return (
         <div className="flex flex-col items-center p-5 bg-gradient-to-r from-[#63E2C6] to-[#5ABCB9] min-h-screen pt-20"> 
@@ -41,17 +36,9 @@ const LostAnimals = () => {
             <p className="text-center mb-10 text-[#074F57]">Segíts, hogy visszakerüljön a családjához!</p>
             <div className="flex flex-col items-center mb-6 w-full max-w-2xl">
                 <div className="flex flex-col sm:flex-row gap-4 mb-4 w-full"> 
-                    <select
-                        value={searchType}
-                        onChange={(e) => setSearchType(e.target.value)}
-                        className="p-2 border-2 border-[#63E2C6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5ABCB9] text-lg text-[#074F57] w-full sm:w-auto" 
-                    >
-                        <option value="name">Név</option>
-                        <option value="species">Faj</option>
-                    </select>
                     <input
                         type="text"
-                        placeholder={`Keresés ${searchType === "name" ? "név" : "faj"} alapján...`}
+                        placeholder="Keresés faj alapján..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="p-2 border-2 border-[#63E2C6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5ABCB9] text-lg text-[#074F57] w-full"

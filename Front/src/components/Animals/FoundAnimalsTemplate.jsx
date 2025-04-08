@@ -7,7 +7,7 @@ const FoundAnimalsTemplate = ({ animal }) => {
                 {animal.filePath && (
                     <img 
                         src={`http://localhost:8000/${animal.filePath}`} 
-                        alt={animal.nev} 
+                        alt={animal.allatfaj} 
                         className="w-full h-48 object-cover object-top" 
                     />
                 )}
@@ -19,7 +19,7 @@ const FoundAnimalsTemplate = ({ animal }) => {
                 </div>
             </div>
             <div className="p-4">
-                <h2 className="text-xl font-bold text-gray-800">{animal.nev}</h2>
+                <h2 className="text-xl font-bold text-gray-800">{animal.allatfaj}</h2>
             </div>
         </div>
     );

@@ -228,11 +228,11 @@ const MyProfileTemplate = ({ user }) => {
                             <label htmlFor="name" className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                                 Felhasználónév
                             </label>
-                            <div className="flex gap-3">
+                            <div className="flex flex-col sm:flex-row gap-3">
                                 <input
                                     type="text"
                                     id="name"
-                                    className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:outline-none ${
+                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:outline-none ${
                                         theme === 'dark' 
                                             ? 'border-gray-600 bg-gray-700 text-white focus:ring-[#1A73E8] focus:border-[#1A73E8]' 
                                             : 'border-gray-300 bg-white text-[#073F48] focus:ring-[#1A73E8] focus:border-[#1A73E8]'
@@ -244,7 +244,7 @@ const MyProfileTemplate = ({ user }) => {
                                 <button
                                     type="button"
                                     onClick={() => setIsEditingName(!isEditingName)}
-                                    className={`px-5 py-3 rounded-lg font-medium transition-colors ${
+                                    className={`w-full sm:w-auto px-5 py-3 rounded-lg font-medium transition-colors ${
                                         theme === 'dark' 
                                             ? 'bg-[#1A73E8] hover:bg-[#1557B0] text-white' 
                                             : 'bg-[#1A73E8] hover:bg-[#1557B0] text-white'
@@ -260,11 +260,11 @@ const MyProfileTemplate = ({ user }) => {
                             <label htmlFor="email" className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                                 Email cím
                             </label>
-                            <div className="flex gap-3">
+                            <div className="flex flex-col sm:flex-row gap-3">
                                 <input
                                     type="email"
                                     id="email"
-                                    className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:outline-none ${
+                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:outline-none ${
                                         theme === 'dark' 
                                             ? 'border-gray-600 bg-gray-700 text-white focus:ring-[#1A73E8] focus:border-[#1A73E8]' 
                                             : 'border-gray-300 bg-white text-[#073F48] focus:ring-[#1A73E8] focus:border-[#1A73E8]'
@@ -276,7 +276,7 @@ const MyProfileTemplate = ({ user }) => {
                                 <button
                                     type="button"
                                     onClick={() => setIsEditingEmail(!isEditingEmail)}
-                                    className={`px-5 py-3 rounded-lg font-medium transition-colors ${
+                                    className={`w-full sm:w-auto px-5 py-3 rounded-lg font-medium transition-colors ${
                                         theme === 'dark' 
                                             ? 'bg-[#1A73E8] hover:bg-[#1557B0] text-white' 
                                             : 'bg-[#1A73E8] hover:bg-[#1557B0] text-white'
